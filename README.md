@@ -83,8 +83,8 @@ flowchart TD
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/ai-model-playground.git
-cd ai-model-playground
+git clone https://github.com/ER-RIFA/ai_model_playground.git
+cd ai_model_playground
 ```
 
 ### 2. Install Dependencies
