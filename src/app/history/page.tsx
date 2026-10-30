@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
-  History, 
   Search, 
   Trash2, 
   Clock, 
@@ -122,21 +121,20 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0e12] text-[#f1f3f7] pb-16">
+    <div className="min-h-screen bg-[#191919] text-[#F1F0EB] pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-[#222733]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-[#383733]">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <History className="w-4 h-4 text-[#3b82f6]" />
-              <span className="text-[11px] font-mono uppercase tracking-wider text-[#3b82f6] font-medium">
-                Telemetry & Logs
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#A5A39D] px-2 py-0.5 rounded-sm bg-[#222220] border border-[#383733]">
+                Database Telemetry
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f3f7]">
-              Usage History & Analytics
+            <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#F1F0EB] tracking-tight">
+              Execution Logs & Analytics
             </h1>
-            <p className="text-xs text-[#8b94a0] mt-0.5">
+            <p className="text-xs text-[#A5A39D] mt-1 max-w-xl">
               Persistent execution records, latency metrics, and token accounting stored via SQLite.
             </p>
           </div>
@@ -145,77 +143,77 @@ export default function HistoryPage() {
             <button
               onClick={handleExportJSON}
               disabled={logs.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-[#13171f] border border-[#222733] text-[#cbd5e1] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium bg-[#222220] border border-[#383733] text-[#F1F0EB] hover:bg-[#292927] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
-              <Download className="w-3.5 h-3.5" />
-              Export JSON
+              <Download className="w-3.5 h-3.5 text-[#A5A39D]" />
+              <span>Export JSON</span>
             </button>
             <button
               onClick={handleClearAll}
               disabled={logs.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#ef4444] hover:text-[#f87171] hover:bg-[#ef4444]/10 border border-[#222733] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium text-[#E58B8B] hover:bg-[#852C2C]/20 border border-[#383733] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Clear
+              <span>Clear History</span>
             </button>
           </div>
         </div>
 
         {/* Analytics Summary Tiles */}
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-5">
-            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
-              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
-                <span>TOTAL REQUESTS</span>
-                <Activity className="w-3.5 h-3.5 text-[#3b82f6]" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-6">
+            <div className="p-4 rounded-sm bg-[#222220] border border-[#383733]">
+              <div className="flex items-center justify-between text-[#A5A39D] text-[10px] font-mono uppercase tracking-wider mb-2">
+                <span>Total Requests</span>
+                <Activity className="w-3.5 h-3.5 text-[#8CB2D4]" />
               </div>
-              <div className="text-xl font-bold text-[#f1f3f7] font-mono">
+              <div className="text-2xl font-normal text-[#F1F0EB] font-mono">
                 {stats.totalRequests}
               </div>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
-              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
-                <span>TOKENS PROCESSED</span>
-                <Hash className="w-3.5 h-3.5 text-[#38bdf8]" />
+            <div className="p-4 rounded-sm bg-[#222220] border border-[#383733]">
+              <div className="flex items-center justify-between text-[#A5A39D] text-[10px] font-mono uppercase tracking-wider mb-2">
+                <span>Tokens Processed</span>
+                <Hash className="w-3.5 h-3.5 text-[#8CB2D4]" />
               </div>
-              <div className="text-xl font-bold text-[#f1f3f7] font-mono">
+              <div className="text-2xl font-normal text-[#F1F0EB] font-mono">
                 {formatNumber(stats.totalTokens)}
               </div>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
-              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
-                <span>AVG LATENCY</span>
-                <Clock className="w-3.5 h-3.5 text-[#10b981]" />
+            <div className="p-4 rounded-sm bg-[#222220] border border-[#383733]">
+              <div className="flex items-center justify-between text-[#A5A39D] text-[10px] font-mono uppercase tracking-wider mb-2">
+                <span>Average Latency</span>
+                <Clock className="w-3.5 h-3.5 text-[#78A890]" />
               </div>
-              <div className="text-xl font-bold text-[#f1f3f7] font-mono">
+              <div className="text-2xl font-normal text-[#F1F0EB] font-mono">
                 {stats.avgLatencyMs}ms
               </div>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
-              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
-                <span>MOST UTILIZED</span>
-                <Cpu className="w-3.5 h-3.5 text-[#fbbf24]" />
+            <div className="p-4 rounded-sm bg-[#222220] border border-[#383733]">
+              <div className="flex items-center justify-between text-[#A5A39D] text-[10px] font-mono uppercase tracking-wider mb-2">
+                <span>Most Utilized</span>
+                <Cpu className="w-3.5 h-3.5 text-[#8CB2D4]" />
               </div>
-              <div className="text-xs font-semibold text-[#f1f3f7] truncate font-mono mt-1">
-                {stats.mostUsedModel}
+              <div className="text-xs font-medium text-[#F1F0EB] truncate font-mono mt-1">
+                {stats.mostUsedModel || 'None'}
               </div>
             </div>
           </div>
         )}
 
         {/* Filter Toolbar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 rounded-lg bg-[#13171f] border border-[#222733] mb-5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-sm bg-[#20201F] border border-[#383733] mb-6">
           <form onSubmit={handleSearchSubmit} className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-[#5c6470] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#A5A39D] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search prompts or response content..."
+              placeholder="Search prompts or output responses..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-1.5 bg-[#0c0e12] border border-[#222733] rounded-md text-xs text-[#f1f3f7] placeholder-[#5c6470] focus:outline-none focus:border-[#3b82f6] transition-colors"
+              className="w-full pl-9 pr-4 py-1.5 bg-[#191919] border border-[#383733] rounded-sm text-xs text-[#F1F0EB] placeholder-[#A5A39D]/50 focus:outline-none focus:border-[#2F658E] transition-colors"
             />
           </form>
 
@@ -223,7 +221,7 @@ export default function HistoryPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-[#0c0e12] border border-[#222733] text-xs text-[#cbd5e1] rounded-md px-2.5 py-1.5 focus:outline-none cursor-pointer"
+              className="bg-[#191919] border border-[#383733] text-xs text-[#F1F0EB] rounded-sm px-2.5 py-1.5 focus:outline-none focus:border-[#2F658E] cursor-pointer"
             >
               <option value="all">All Statuses</option>
               <option value="success">Success Only</option>
@@ -235,7 +233,7 @@ export default function HistoryPage() {
                 setPage(1);
                 fetchLogs();
               }}
-              className="p-1.5 rounded-md bg-[#0c0e12] border border-[#222733] text-[#8b94a0] hover:text-[#f1f3f7] transition-colors"
+              className="p-1.5 rounded-sm bg-[#191919] border border-[#383733] text-[#A5A39D] hover:text-[#F1F0EB] hover:bg-[#292927] transition-colors"
               title="Refresh"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -245,65 +243,65 @@ export default function HistoryPage() {
 
         {/* Data Table */}
         {logs.length > 0 ? (
-          <div className="rounded-lg border border-[#222733] bg-[#13171f] overflow-x-auto">
-            <table className="min-w-full divide-y divide-[#222733] text-left text-xs">
-              <thead className="bg-[#10141b] text-[11px] font-mono uppercase text-[#5c6470]">
+          <div className="rounded-sm border border-[#383733] bg-[#222220] overflow-x-auto">
+            <table className="min-w-full divide-y divide-[#383733] text-left text-xs">
+              <thead className="bg-[#20201F] text-[10px] font-mono uppercase tracking-wider text-[#A5A39D]">
                 <tr>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Model</th>
-                  <th className="px-4 py-2.5">Prompt</th>
-                  <th className="px-4 py-2.5">Tokens</th>
-                  <th className="px-4 py-2.5">Latency</th>
-                  <th className="px-4 py-2.5">Timestamp</th>
-                  <th className="px-4 py-2.5 text-right">Actions</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Model</th>
+                  <th className="px-4 py-3">Prompt</th>
+                  <th className="px-4 py-3">Tokens</th>
+                  <th className="px-4 py-3">Latency</th>
+                  <th className="px-4 py-3">Timestamp</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#222733]/60">
+              <tbody className="divide-y divide-[#383733]/50">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#151922] transition-colors">
+                  <tr key={log.id} className="hover:bg-[#20201F] transition-colors">
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block w-2 h-2 rounded-sm ${
-                          log.status === 'success' ? 'bg-[#10b981]' : 'bg-[#ef4444]'
+                          log.status === 'success' ? 'bg-[#78A890]' : 'bg-[#E58B8B]'
                         }`}
                         title={log.status}
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-[#f1f3f7]">{log.modelName}</div>
-                      <div className="text-[10px] font-mono text-[#5c6470]">{log.provider}</div>
+                      <div className="font-medium text-[#F1F0EB]">{log.modelName}</div>
+                      <div className="text-[10px] font-mono text-[#A5A39D]">{log.provider}</div>
                     </td>
                     <td className="px-4 py-3 max-w-xs">
-                      <p className="text-[#cbd5e1] truncate">{log.prompt}</p>
+                      <p className="text-[#F1F0EB]/90 truncate">{log.prompt}</p>
                     </td>
-                    <td className="px-4 py-3 font-mono text-[11px] text-[#cbd5e1]">
+                    <td className="px-4 py-3 font-mono text-[11px] text-[#A5A39D]">
                       {log.totalTokens}
                     </td>
-                    <td className="px-4 py-3 font-mono text-[11px] text-[#38bdf8]">
+                    <td className="px-4 py-3 font-mono text-[11px] text-[#8CB2D4]">
                       {log.latencyMs}ms
                     </td>
-                    <td className="px-4 py-3 text-[11px] text-[#8b94a0]">
+                    <td className="px-4 py-3 text-[11px] font-mono text-[#A5A39D]">
                       {formatDate(log.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => setActiveLog(log)}
-                          className="p-1 rounded text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors"
-                          title="Inspect"
+                          className="p-1 rounded-sm text-[#A5A39D] hover:text-[#F1F0EB] hover:bg-[#292927] transition-colors"
+                          title="Inspect payload"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <Link
                           href={`/playground?model=${encodeURIComponent(log.modelId)}`}
-                          className="p-1 rounded text-[#8b94a0] hover:text-[#3b82f6] hover:bg-[#181d26] transition-colors"
+                          className="p-1 rounded-sm text-[#A5A39D] hover:text-[#8CB2D4] hover:bg-[#292927] transition-colors"
                           title="Replay in playground"
                         >
                           <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                         <button
                           onClick={() => handleDeleteRecord(log.id)}
-                          className="p-1 rounded text-[#8b94a0] hover:text-[#ef4444] hover:bg-[#181d26] transition-colors"
+                          className="p-1 rounded-sm text-[#A5A39D] hover:text-[#E58B8B] hover:bg-[#292927] transition-colors"
                           title="Delete record"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -316,23 +314,23 @@ export default function HistoryPage() {
             </table>
 
             {/* Pagination Controls */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#222733] text-xs text-[#8b94a0] font-mono">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-[#383733] text-xs text-[#A5A39D] font-mono bg-[#20201F]">
               <span>
-                Page {page} of {totalPages} ({totalCount} total)
+                Page {page} of {totalPages} ({totalCount} entries)
               </span>
 
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="p-1 rounded bg-[#0c0e12] border border-[#222733] text-[#8b94a0] hover:text-[#f1f3f7] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                  className="p-1 rounded-sm bg-[#191919] border border-[#383733] text-[#A5A39D] hover:text-[#F1F0EB] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="p-1 rounded bg-[#0c0e12] border border-[#222733] text-[#8b94a0] hover:text-[#f1f3f7] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                  className="p-1 rounded-sm bg-[#191919] border border-[#383733] text-[#A5A39D] hover:text-[#F1F0EB] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -340,17 +338,17 @@ export default function HistoryPage() {
             </div>
           </div>
         ) : (
-          <div className="p-12 text-center rounded-lg bg-[#13171f] border border-[#222733]">
-            <h3 className="text-sm font-semibold text-[#f1f3f7] mb-1">No execution history recorded</h3>
-            <p className="text-xs text-[#8b94a0] max-w-sm mx-auto mb-3">
-              Requests made in the playground or arena will automatically be logged here with metrics.
+          <div className="p-12 text-center rounded-sm bg-[#222220] border border-[#383733]">
+            <h3 className="font-serif text-base text-[#F1F0EB] mb-1">No execution history recorded</h3>
+            <p className="text-xs text-[#A5A39D] max-w-sm mx-auto mb-4">
+              Requests executed in the playground or arena will automatically be logged here with token metrics and latency.
             </p>
             <Link
               href="/playground"
-              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-medium rounded-md transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2F658E] hover:bg-[#3B7BA8] text-[#F1F0EB] text-xs font-medium rounded-sm transition-colors"
             >
               <span>Open Playground</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         )}
@@ -358,18 +356,18 @@ export default function HistoryPage() {
 
       {/* Detail Inspection Modal */}
       {activeLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-none animate-fade-in">
-          <div className="bg-[#13171f] border border-[#2e3545] rounded-lg w-full max-w-2xl overflow-hidden shadow-xl flex flex-col max-h-[85vh]">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-[#222733] bg-[#10141b]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-none animate-fade-in">
+          <div className="bg-[#20201F] border border-[#383733] rounded-sm w-full max-w-2xl overflow-hidden shadow-xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#383733] bg-[#222220]">
               <div>
-                <h3 className="text-sm font-semibold text-[#f1f3f7]">{activeLog.modelName}</h3>
-                <span className="text-[11px] text-[#5c6470] font-mono">
+                <h3 className="font-serif text-base font-normal text-[#F1F0EB]">{activeLog.modelName}</h3>
+                <span className="text-[11px] text-[#A5A39D] font-mono">
                   {formatDate(activeLog.createdAt)} • {activeLog.latencyMs}ms • {activeLog.totalTokens} tokens
                 </span>
               </div>
               <button
                 onClick={() => setActiveLog(null)}
-                className="p-1 rounded text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors"
+                className="p-1 rounded-sm text-[#A5A39D] hover:text-[#F1F0EB] hover:bg-[#292927] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -377,23 +375,23 @@ export default function HistoryPage() {
 
             <div className="p-5 overflow-y-auto space-y-4 text-xs">
               <div>
-                <span className="text-[11px] uppercase font-mono tracking-wider text-[#5c6470] font-medium block mb-1">
+                <span className="text-[10px] uppercase font-mono tracking-wider text-[#A5A39D] font-medium block mb-1.5">
                   User Prompt
                 </span>
-                <div className="p-3 rounded-md bg-[#0c0e12] border border-[#222733] text-[#cbd5e1] whitespace-pre-wrap leading-relaxed">
+                <div className="p-3 rounded-sm bg-[#191919] border border-[#383733] text-[#F1F0EB] whitespace-pre-wrap leading-relaxed">
                   {activeLog.prompt}
                 </div>
               </div>
 
               <div>
-                <span className="text-[11px] uppercase font-mono tracking-wider text-[#5c6470] font-medium block mb-1">
-                  Response
+                <span className="text-[10px] uppercase font-mono tracking-wider text-[#A5A39D] font-medium block mb-1.5">
+                  Model Output
                 </span>
-                <div className="p-3 rounded-md bg-[#0c0e12] border border-[#222733]">
+                <div className="p-3 rounded-sm bg-[#191919] border border-[#383733]">
                   {activeLog.response ? (
                     <MarkdownRenderer content={activeLog.response} />
                   ) : (
-                    <span className="text-[#ef4444]">
+                    <span className="text-[#E58B8B]">
                       Error: {activeLog.errorMessage || 'No response returned.'}
                     </span>
                   )}
@@ -401,10 +399,10 @@ export default function HistoryPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-5 py-2.5 border-t border-[#222733] bg-[#10141b]">
+            <div className="flex items-center justify-between px-5 py-3 border-t border-[#383733] bg-[#222220]">
               <button
                 onClick={() => setActiveLog(null)}
-                className="px-3 py-1.5 text-xs text-[#8b94a0] hover:text-[#f1f3f7] rounded-md transition-colors"
+                className="px-3 py-1.5 text-xs text-[#A5A39D] hover:text-[#F1F0EB] rounded-sm transition-colors"
               >
                 Close
               </button>
@@ -412,10 +410,10 @@ export default function HistoryPage() {
               <Link
                 href={`/playground?model=${encodeURIComponent(activeLog.modelId)}`}
                 onClick={() => setActiveLog(null)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-colors"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm text-xs font-medium bg-[#2F658E] hover:bg-[#3B7BA8] text-[#F1F0EB] transition-colors"
               >
                 <span>Replay in Playground</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>

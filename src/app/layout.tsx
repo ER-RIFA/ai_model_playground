@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import { Navbar } from '@/components/Navbar';
+import { Sidebar } from '@/components/Sidebar';
+import { TopBar } from '@/components/TopBar';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -15,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'AI Model Playground | Explore, Benchmark & Test LLMs',
-  description: 'Enterprise-grade AI exploration and benchmarking suite for frontier language models.',
+  title: 'AI Model Playground | Frontier Model Engineering',
+  description: 'A developer-focused exploration, benchmarking, and inference suite for frontier language models.',
 };
 
 export default function RootLayout({
@@ -27,11 +28,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0c0e12] text-[#f1f3f7] min-h-screen flex flex-col font-sans selection:bg-blue-600/25 selection:text-blue-100`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#191919] text-[#F1F0EB] min-h-screen selection:bg-[#2F658E]/30 selection:text-[#F1F0EB]`}
       >
-        <Navbar />
-        <div className="flex-1 flex flex-col">
-          {children}
+        <div className="flex min-h-screen bg-[#191919] text-[#F1F0EB]">
+          <Sidebar />
+          <div className="flex-1 flex flex-col min-w-0">
+            <TopBar />
+            <main className="flex-1 flex flex-col">
+              {children}
+            </main>
+          </div>
         </div>
       </body>
     </html>

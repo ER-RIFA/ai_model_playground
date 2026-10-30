@@ -11,7 +11,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <div className="prose prose-invert max-w-none text-xs sm:text-sm leading-relaxed text-[#e1e4ea] space-y-2.5 break-words">
+    <div className="prose prose-invert max-w-none text-xs sm:text-sm leading-relaxed text-[#DCDAD4] space-y-2.5 break-words font-sans">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -27,7 +27,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
             return (
               <code
-                className="bg-[#181d26] text-[#cbd5e1] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[#222733]"
+                className="bg-[#222220] text-[#F1F0EB] px-1.5 py-0.5 rounded-sm text-[11px] font-mono border border-[#383733]"
                 {...props}
               >
                 {children}
@@ -35,47 +35,47 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             );
           },
           p({ children }) {
-            return <p className="mb-2 last:mb-0 leading-relaxed text-[#e1e4ea]">{children}</p>;
+            return <p className="mb-2 last:mb-0 leading-relaxed text-[#DCDAD4]">{children}</p>;
           },
           ul({ children }) {
-            return <ul className="list-disc pl-5 my-2 space-y-1 text-[#cbd5e1]">{children}</ul>;
+            return <ul className="list-disc pl-5 my-2 space-y-1 text-[#A5A39D]">{children}</ul>;
           },
           ol({ children }) {
-            return <ol className="list-decimal pl-5 my-2 space-y-1 text-[#cbd5e1]">{children}</ol>;
+            return <ol className="list-decimal pl-5 my-2 space-y-1 text-[#A5A39D]">{children}</ol>;
           },
           li({ children }) {
-            return <li className="text-[#cbd5e1] leading-relaxed">{children}</li>;
+            return <li className="text-[#DCDAD4] leading-relaxed">{children}</li>;
           },
           h1({ children }) {
-            return <h1 className="text-base font-semibold text-[#f1f3f7] mt-3.5 mb-1.5 pb-1 border-b border-[#222733]">{children}</h1>;
+            return <h1 className="font-serif text-base font-normal text-[#F1F0EB] mt-3.5 mb-1.5 pb-1 border-b border-[#383733]">{children}</h1>;
           },
           h2({ children }) {
-            return <h2 className="text-sm font-semibold text-[#f1f3f7] mt-3 mb-1">{children}</h2>;
+            return <h2 className="font-serif text-sm font-normal text-[#F1F0EB] mt-3 mb-1">{children}</h2>;
           },
           h3({ children }) {
-            return <h3 className="text-xs font-semibold text-[#93c5fd] mt-2 mb-1">{children}</h3>;
+            return <h3 className="font-serif text-xs font-normal text-[#8CB2D4] mt-2 mb-1">{children}</h3>;
           },
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-2 border-[#3b82f6] bg-[#13171f] px-3 py-1.5 my-2 text-[#94a3b8] text-xs">
+              <blockquote className="border-l-2 border-[#2F658E] bg-[#20201F] px-3 py-1.5 my-2 text-[#A5A39D] text-xs">
                 {children}
               </blockquote>
             );
           },
           table({ children }) {
             return (
-              <div className="overflow-x-auto my-3 rounded border border-[#222733]">
-                <table className="min-w-full divide-y divide-[#222733] text-left text-xs">
+              <div className="overflow-x-auto my-3 rounded-sm border border-[#383733]">
+                <table className="min-w-full divide-y divide-[#383733] text-left text-xs font-mono">
                   {children}
                 </table>
               </div>
             );
           },
           th({ children }) {
-            return <th className="bg-[#13171f] px-3 py-2 text-[#cbd5e1] font-medium">{children}</th>;
+            return <th className="bg-[#20201F] px-3 py-2 text-[#F1F0EB] font-medium">{children}</th>;
           },
           td({ children }) {
-            return <td className="px-3 py-1.5 border-t border-[#222733] text-[#94a3b8]">{children}</td>;
+            return <td className="px-3 py-1.5 border-t border-[#383733] text-[#A5A39D]">{children}</td>;
           },
         }}
       >
@@ -95,28 +95,28 @@ function CodeBlock({ language, value }: { language: string; value: string }) {
   };
 
   return (
-    <div className="relative my-2.5 rounded-md overflow-hidden border border-[#222733] bg-[#0c0e12]">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-[#13171f] border-b border-[#222733] text-[11px] text-[#8b94a0] font-mono">
-        <span className="uppercase font-medium text-[#93c5fd]">{language}</span>
+    <div className="relative my-2.5 rounded-sm overflow-hidden border border-[#383733] bg-[#151514]">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-[#20201F] border-b border-[#383733] text-[11px] text-[#A5A39D] font-mono">
+        <span className="uppercase text-[#8CB2D4] text-[10px] tracking-wider">{language}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-0.5 rounded text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors"
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[#A5A39D] hover:text-[#F1F0EB] hover:bg-[#292927] transition-colors"
           title="Copy code"
         >
           {copied ? (
             <>
-              <Check className="w-3 h-3 text-[#10b981]" />
-              <span className="text-[#10b981] text-[11px]">Copied</span>
+              <Check className="w-3 h-3 text-[#48A977]" />
+              <span className="text-[#48A977] text-[10px]">Copied</span>
             </>
           ) : (
             <>
               <Copy className="w-3 h-3" />
-              <span className="text-[11px]">Copy</span>
+              <span className="text-[10px]">Copy</span>
             </>
           )}
         </button>
       </div>
-      <div className="p-3 overflow-x-auto font-mono text-xs text-[#e1e4ea] leading-relaxed">
+      <div className="p-3 overflow-x-auto font-mono text-xs text-[#F1F0EB] leading-relaxed">
         <pre>{value}</pre>
       </div>
     </div>

@@ -1,28 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #0c0e12;
-  --surface: #13171f;
-  --surface-muted: #181d26;
-  --border: #222733;
-  --border-strong: #2e3545;
-  --foreground: #f1f3f7;
-  --foreground-muted: #8b94a0;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  --background: #191919;
+  --foreground: #F1F0EB;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: #F1F0EB;
+  background-color: #191919;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom crisp scrollbars */
+/* Restrained, understated scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -33,28 +28,20 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #222733;
-  border-radius: 4px;
+  background: #383733;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2e3545;
+  background: #4A4843;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* Editorial serif typography utility */
+.font-serif {
+  font-feature-settings: 'kern' 1, 'liga' 1;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.12s ease-out forwards;
-}
-
-/* Utility classes */
+/* Utilities */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
