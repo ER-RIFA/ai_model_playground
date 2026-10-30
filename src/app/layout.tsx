@@ -16,8 +16,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: 'AI Model Playground | Explore, Benchmark & Test LLMs',
-  description: 'Explore the world’s leading AI models with real-time streaming, latency benchmarks, side-by-side arena comparison, and full usage metrics.',
-  keywords: ['AI Models', 'LLM Playground', 'DeepSeek R1', 'Llama 3.3', 'GPT-4o', 'OpenRouter', 'AI Arena'],
+  description: 'Enterprise-grade AI exploration and benchmarking suite for frontier language models.',
 };
 
 export default function RootLayout({
@@ -28,10 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#07090e] text-zinc-100 min-h-screen flex flex-col font-sans selection:bg-violet-500/30 selection:text-violet-200`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0c0e12] text-[#f1f3f7] min-h-screen flex flex-col font-sans selection:bg-blue-600/25 selection:text-blue-100`}
       >
         <Navbar />
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           {children}
         </div>
       </body>

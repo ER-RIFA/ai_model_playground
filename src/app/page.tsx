@@ -4,19 +4,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { 
   Search, 
-  Filter, 
-  Sparkles, 
-  Zap, 
   ArrowUpDown, 
-  Layers, 
-  Cpu, 
-  CheckCircle2,
-  Columns
+  LayoutGrid,
+  List,
+  ArrowRight
 } from 'lucide-react';
 import { AIModel } from '@/types';
 import { POPULAR_MODELS, PROVIDERS, CAPABILITY_TAGS } from '@/data/models';
 import { ModelCard } from '@/components/ModelCard';
 import { ModelDetailModal } from '@/components/ModelDetailModal';
+import { formatNumber, formatPrice } from '@/lib/utils';
 
 export default function ModelDiscoveryPage() {
   const [models, setModels] = useState<AIModel[]>(POPULAR_MODELS);
@@ -24,8 +21,8 @@ export default function ModelDiscoveryPage() {
   const [selectedProvider, setSelectedProvider] = useState('All Providers');
   const [selectedCapability, setSelectedCapability] = useState('All Capabilities');
   const [sortBy, setSortBy] = useState<'featured' | 'context-desc' | 'price-asc' | 'name-asc'>('featured');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [inspectingModel, setInspectingModel] = useState<AIModel | null>(null);
-  const [sourceNote, setSourceNote] = useState<string>('curated');
 
   useEffect(() => {
     async function fetchModels() {
@@ -35,11 +32,10 @@ export default function ModelDiscoveryPage() {
           const data = await res.json();
           if (Array.isArray(data.models) && data.models.length > 0) {
             setModels(data.models);
-            setSourceNote(data.source || 'openrouter');
           }
         }
       } catch (err) {
-        console.error('Failed to load dynamic models, using curated dataset:', err);
+        console.error('Failed to load dynamic models, using fallback catalog:', err);
       }
     }
 
@@ -49,7 +45,6 @@ export default function ModelDiscoveryPage() {
   const filteredModels = useMemo(() => {
     return models
       .filter((model) => {
-        // Search query
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const matchesName = model.name.toLowerCase().includes(q);
@@ -59,12 +54,10 @@ export default function ModelDiscoveryPage() {
           if (!matchesName && !matchesId && !matchesDesc && !matchesArch) return false;
         }
 
-        // Provider filter
-        if (selectedProvider !== 'All Providers') {
-          if (model.provider !== selectedProvider) return false;
+        if (selectedProvider !== 'All Providers' && model.provider !== selectedProvider) {
+          return false;
         }
 
-        // Capability filter
         if (selectedCapability !== 'All Capabilities') {
           if (selectedCapability === 'Free') {
             if (!model.isFree) return false;
@@ -97,186 +90,258 @@ export default function ModelDiscoveryPage() {
   const freeModelsCount = useMemo(() => models.filter((m) => m.isFree).length, [models]);
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-zinc-100 pb-20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-zinc-800/80 bg-gradient-to-b from-violet-950/20 via-transparent to-transparent pt-12 pb-14">
-        {/* Glow orb */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/10 blur-[120px] pointer-events-none rounded-full" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-xs font-medium text-violet-300 mb-4">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Next-Gen AI Catalog & Playground</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight max-w-3xl mx-auto leading-tight">
-            Explore, Benchmark & Test the World&apos;s Best <span className="bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">AI Models</span>
-          </h1>
-
-          <p className="mt-4 text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto">
-            Discover leading models across OpenAI, Anthropic, DeepSeek, Meta, Google, and Mistral. Compare context windows, token pricing, and stream responses with real-time benchmarks.
-          </p>
-
-          {/* Quick Stat Badges */}
-          <div className="mt-8 flex items-center justify-center gap-4 flex-wrap text-xs font-mono">
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-300">
-              <Cpu className="w-3.5 h-3.5 text-violet-400" />
-              <span><strong>{models.length}</strong> Available Models</span>
+    <div className="min-h-screen bg-[#0c0e12] text-[#f1f3f7] pb-16">
+      {/* Top Header & Metrics Strip */}
+      <section className="border-b border-[#222733] bg-[#10141b] py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-[#3b82f6] font-medium">
+                  Catalog Directory
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f3f7]">
+                AI Model Directory
+              </h1>
+              <p className="mt-1 text-xs sm:text-sm text-[#8b94a0] max-w-2xl leading-relaxed">
+                Explore supported frontier and open-weight models. Compare context windows, token pricing, and latency across providers.
+              </p>
             </div>
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span><strong>{freeModelsCount}</strong> Free-Tier Models</span>
-            </div>
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-300">
-              <Layers className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Up to <strong>1M+</strong> Context Window</span>
-            </div>
-          </div>
 
-          {/* Direct CTA links */}
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <Link
-              href="/playground"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-600/30 transition"
-            >
-              <Zap className="w-4 h-4" />
-              Launch Playground
-            </Link>
-            <Link
-              href="/compare"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition"
-            >
-              <Columns className="w-4 h-4" />
-              Side-by-Side Arena
-            </Link>
+            {/* Structured Metric Badges */}
+            <div className="flex items-center gap-3 font-mono text-xs">
+              <div className="px-3 py-2 rounded-md bg-[#13171f] border border-[#222733]">
+                <div className="text-[10px] text-[#5c6470] uppercase">Models</div>
+                <div className="text-sm font-semibold text-[#f1f3f7]">{models.length}</div>
+              </div>
+              <div className="px-3 py-2 rounded-md bg-[#13171f] border border-[#222733]">
+                <div className="text-[10px] text-[#5c6470] uppercase">Free Tier</div>
+                <div className="text-sm font-semibold text-[#10b981]">{freeModelsCount}</div>
+              </div>
+              <div className="px-3 py-2 rounded-md bg-[#13171f] border border-[#222733]">
+                <div className="text-[10px] text-[#5c6470] uppercase">Max Context</div>
+                <div className="text-sm font-semibold text-[#38bdf8]">1M tokens</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Main Catalog & Search / Filter Controls */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        {/* Search & Sort Controls Bar */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 mb-6 backdrop-blur">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by model name, description, architecture, or provider..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-zinc-950/80 border border-zinc-800 rounded-xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500 transition"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-white"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-
-          {/* Sort By Dropdown */}
-          <div className="flex items-center gap-2 shrink-0">
-            <ArrowUpDown className="w-4 h-4 text-zinc-400" />
-            <span className="text-xs text-zinc-400">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-zinc-950/80 border border-zinc-800 text-xs text-zinc-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
-            >
-              <option value="featured">Featured First</option>
-              <option value="context-desc">Context Window: High to Low</option>
-              <option value="price-asc">Price: Low to High (Free First)</option>
-              <option value="name-asc">Model Name (A-Z)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Filters Group: Providers and Capabilities */}
-        <div className="space-y-3 mb-8">
-          {/* Provider Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <span className="text-xs text-zinc-400 font-medium shrink-0 flex items-center gap-1 mr-1">
-              <Filter className="w-3.5 h-3.5" /> Provider:
-            </span>
-            {PROVIDERS.map((provider) => {
-              const active = selectedProvider === provider;
-              return (
-                <button
-                  key={provider}
-                  onClick={() => setSelectedProvider(provider)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition border ${
-                    active
-                      ? 'bg-violet-600 text-white border-violet-500 shadow-sm shadow-violet-600/30'
-                      : 'bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border-zinc-800'
-                  }`}
-                >
-                  {provider}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Capability Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <span className="text-xs text-zinc-400 font-medium shrink-0 flex items-center gap-1 mr-1">
-              <Sparkles className="w-3.5 h-3.5" /> Capability:
-            </span>
-            {CAPABILITY_TAGS.map((cap) => {
-              const active = selectedCapability === cap;
-              return (
-                <button
-                  key={cap}
-                  onClick={() => setSelectedCapability(cap)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition border ${
-                    active
-                      ? 'bg-cyan-600 text-white border-cyan-500 shadow-sm shadow-cyan-600/30'
-                      : 'bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border-zinc-800'
-                  }`}
-                >
-                  {cap}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Models Counter and Results Info */}
-        <div className="flex items-center justify-between text-xs text-zinc-400 mb-4 px-1">
-          <span>
-            Showing <strong className="text-zinc-200">{filteredModels.length}</strong> of {models.length} models
-            {selectedProvider !== 'All Providers' && ` for ${selectedProvider}`}
-            {selectedCapability !== 'All Capabilities' && ` with ${selectedCapability}`}
-          </span>
-          {sourceNote === 'openrouter' && (
-            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-zinc-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Live Synced via OpenRouter Catalog
-            </span>
-          )}
-        </div>
-
-        {/* Models Grid */}
-        {filteredModels.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredModels.map((model) => (
-              <ModelCard
-                key={model.id}
-                model={model}
-                onOpenDetails={(m) => setInspectingModel(m)}
+      {/* Main Catalog Workspace */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {/* Filtering & Search Toolbar */}
+        <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733] mb-5 space-y-3">
+          {/* Top Row: Search + Sort + View Mode */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div className="relative flex-1">
+              <Search className="w-3.5 h-3.5 text-[#5c6470] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search models by name, architecture, provider, or ID..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-1.5 bg-[#0c0e12] border border-[#222733] rounded-md text-xs text-[#f1f3f7] placeholder-[#5c6470] focus:outline-none focus:border-[#3b82f6] transition-colors"
               />
-            ))}
-          </div>
-        ) : (
-          <div className="p-12 text-center rounded-2xl bg-zinc-900/30 border border-zinc-800/60">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-zinc-800/80 flex items-center justify-center text-zinc-400">
-              <Search className="w-6 h-6" />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-[#8b94a0] hover:text-[#f1f3f7]"
+                >
+                  Clear
+                </button>
+              )}
             </div>
-            <h3 className="text-base font-semibold text-white mb-1">No matching models found</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mx-auto mb-4">
-              Try adjusting your search keywords, clear filters, or reset to all providers.
+
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Sort selector */}
+              <div className="flex items-center gap-1.5 bg-[#0c0e12] border border-[#222733] rounded-md px-2.5 py-1.5 text-xs text-[#8b94a0]">
+                <ArrowUpDown className="w-3.5 h-3.5 text-[#5c6470]" />
+                <span className="text-[11px]">Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-transparent text-xs text-[#f1f3f7] focus:outline-none cursor-pointer"
+                >
+                  <option value="featured" className="bg-[#13171f]">Featured</option>
+                  <option value="context-desc" className="bg-[#13171f]">Context: High to Low</option>
+                  <option value="price-asc" className="bg-[#13171f]">Price: Low to High</option>
+                  <option value="name-asc" className="bg-[#13171f]">Name (A-Z)</option>
+                </select>
+              </div>
+
+              {/* View toggle (Grid / Table) */}
+              <div className="flex items-center border border-[#222733] rounded-md bg-[#0c0e12] p-0.5">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'grid'
+                      ? 'bg-[#181d26] text-[#f1f3f7]'
+                      : 'text-[#5c6470] hover:text-[#8b94a0]'
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'table'
+                      ? 'bg-[#181d26] text-[#f1f3f7]'
+                      : 'text-[#5c6470] hover:text-[#8b94a0]'
+                  }`}
+                  title="Table View"
+                >
+                  <List className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Row: Provider and Capability Filter Tabs */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 pt-2 border-t border-[#222733]/60 text-xs">
+            {/* Providers */}
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none w-full md:w-auto">
+              <span className="text-[11px] text-[#5c6470] font-mono mr-1 shrink-0">Provider:</span>
+              {PROVIDERS.map((provider) => {
+                const active = selectedProvider === provider;
+                return (
+                  <button
+                    key={provider}
+                    onClick={() => setSelectedProvider(provider)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors border ${
+                      active
+                        ? 'bg-[#181d26] text-[#f1f3f7] border-[#2e3545]'
+                        : 'bg-transparent text-[#8b94a0] hover:text-[#f1f3f7] border-transparent'
+                    }`}
+                  >
+                    {provider}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Capabilities */}
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-none w-full md:w-auto">
+              <span className="text-[11px] text-[#5c6470] font-mono mr-1 shrink-0">Type:</span>
+              {CAPABILITY_TAGS.map((cap) => {
+                const active = selectedCapability === cap;
+                return (
+                  <button
+                    key={cap}
+                    onClick={() => setSelectedCapability(cap)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-colors border ${
+                      active
+                        ? 'bg-[#1e293b] text-[#38bdf8] border-[#0284c7]/40'
+                        : 'bg-transparent text-[#8b94a0] hover:text-[#f1f3f7] border-transparent'
+                    }`}
+                  >
+                    {cap}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Counter Info */}
+        <div className="flex items-center justify-between text-xs text-[#8b94a0] mb-3 px-1">
+          <span>
+            Showing <strong className="text-[#f1f3f7]">{filteredModels.length}</strong> of {models.length} models
+          </span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/compare"
+              className="text-xs text-[#3b82f6] hover:text-[#60a5fa] hover:underline flex items-center gap-1"
+            >
+              <span>Compare Models</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Content Display: Grid or Table */}
+        {filteredModels.length > 0 ? (
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {filteredModels.map((model) => (
+                <ModelCard
+                  key={model.id}
+                  model={model}
+                  onOpenDetails={(m) => setInspectingModel(m)}
+                />
+              ))}
+            </div>
+          ) : (
+            /* Table View */
+            <div className="rounded-lg border border-[#222733] bg-[#13171f] overflow-x-auto">
+              <table className="min-w-full divide-y divide-[#222733] text-left text-xs">
+                <thead className="bg-[#10141b] text-[11px] font-mono uppercase text-[#5c6470]">
+                  <tr>
+                    <th className="px-4 py-2.5">Model</th>
+                    <th className="px-4 py-2.5">Provider</th>
+                    <th className="px-4 py-2.5">Context</th>
+                    <th className="px-4 py-2.5">Prompt Price</th>
+                    <th className="px-4 py-2.5">Capabilities</th>
+                    <th className="px-4 py-2.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#222733]/60">
+                  {filteredModels.map((model) => (
+                    <tr key={model.id} className="hover:bg-[#151922] transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-[#f1f3f7]">{model.name}</div>
+                        <div className="text-[11px] font-mono text-[#5c6470]">{model.id}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-[#181d26] text-[#cbd5e1] border border-[#222733]">
+                          {model.provider}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-[#cbd5e1]">
+                        {formatNumber(model.contextLength)} tok
+                      </td>
+                      <td className="px-4 py-3 font-mono">
+                        <span className={model.isFree ? 'text-[#10b981]' : 'text-[#cbd5e1]'}>
+                          {model.isFree ? 'Free' : formatPrice(model.pricing.prompt)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {model.capabilities.slice(0, 3).map((cap) => (
+                            <span key={cap} className="px-1.5 py-0.5 rounded text-[10px] bg-[#181d26] text-[#8b94a0] border border-[#222733]">
+                              {cap}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => setInspectingModel(model)}
+                            className="px-2 py-1 rounded text-xs text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] border border-[#222733] transition-colors"
+                          >
+                            Details
+                          </button>
+                          <Link
+                            href={`/playground?model=${encodeURIComponent(model.id)}`}
+                            className="px-2.5 py-1 rounded text-xs font-medium bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-colors"
+                          >
+                            Try
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        ) : (
+          <div className="p-12 text-center rounded-lg bg-[#13171f] border border-[#222733]">
+            <h3 className="text-sm font-semibold text-[#f1f3f7] mb-1">No matching models found</h3>
+            <p className="text-xs text-[#8b94a0] max-w-sm mx-auto mb-3">
+              Try adjusting your query or resetting provider and capability filters.
             </p>
             <button
               onClick={() => {
@@ -284,7 +349,7 @@ export default function ModelDiscoveryPage() {
                 setSelectedProvider('All Providers');
                 setSelectedCapability('All Capabilities');
               }}
-              className="px-4 py-2 text-xs font-medium rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white transition"
+              className="px-3 py-1.5 text-xs font-medium rounded-md bg-[#181d26] hover:bg-[#222733] text-[#f1f3f7] border border-[#222733] transition-colors"
             >
               Reset Filters
             </button>
@@ -292,7 +357,7 @@ export default function ModelDiscoveryPage() {
         )}
       </main>
 
-      {/* Model Spec Modal */}
+      {/* Model Detail Drawer / Modal */}
       <ModelDetailModal
         model={inspectingModel}
         onClose={() => setInspectingModel(null)}

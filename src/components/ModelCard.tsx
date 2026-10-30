@@ -3,10 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { 
-  Zap, 
-  Sparkles, 
-  Eye, 
-  ArrowRight
+  ArrowRight,
+  Info
 } from 'lucide-react';
 import { AIModel } from '@/types';
 import { formatNumber, formatPrice } from '@/lib/utils';
@@ -16,117 +14,114 @@ interface ModelCardProps {
   onOpenDetails: (model: AIModel) => void;
 }
 
-const PROVIDER_COLORS: Record<string, { badge: string; border: string }> = {
-  DeepSeek: { badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20', border: 'hover:border-blue-500/40' },
-  Meta: { badge: 'bg-sky-500/10 text-sky-400 border-sky-500/20', border: 'hover:border-sky-500/40' },
-  Google: { badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', border: 'hover:border-emerald-500/40' },
-  OpenAI: { badge: 'bg-teal-500/10 text-teal-400 border-teal-500/20', border: 'hover:border-teal-500/40' },
-  Anthropic: { badge: 'bg-amber-500/10 text-amber-400 border-amber-500/20', border: 'hover:border-amber-500/40' },
-  Mistral: { badge: 'bg-orange-500/10 text-orange-400 border-orange-500/20', border: 'hover:border-orange-500/40' },
-  Alibaba: { badge: 'bg-purple-500/10 text-purple-400 border-purple-500/20', border: 'hover:border-purple-500/40' },
+const PROVIDER_STYLES: Record<string, { badge: string }> = {
+  DeepSeek: { badge: 'bg-[#1e293b] text-[#60a5fa] border-[#2563eb]/30' },
+  Meta: { badge: 'bg-[#0c4a6e]/40 text-[#38bdf8] border-[#0284c7]/30' },
+  Google: { badge: 'bg-[#064e3b]/40 text-[#34d399] border-[#059669]/30' },
+  OpenAI: { badge: 'bg-[#134e4a]/40 text-[#2dd4bf] border-[#0d9488]/30' },
+  Anthropic: { badge: 'bg-[#451a03]/40 text-[#fbbf24] border-[#d97706]/30' },
+  Mistral: { badge: 'bg-[#431407]/40 text-[#fb923c] border-[#ea580c]/30' },
+  Alibaba: { badge: 'bg-[#1e293b] text-[#94a3b8] border-[#475569]/30' },
 };
 
 export function ModelCard({ model, onOpenDetails }: ModelCardProps) {
-  const providerStyle = PROVIDER_COLORS[model.provider] || {
-    badge: 'bg-zinc-800 text-zinc-300 border-zinc-700',
-    border: 'hover:border-zinc-700',
+  const providerStyle = PROVIDER_STYLES[model.provider] || {
+    badge: 'bg-[#181d26] text-[#94a3b8] border-[#2e3545]',
   };
 
   return (
-    <div className={`group flex flex-col justify-between p-5 rounded-2xl bg-zinc-900/60 border border-zinc-800/90 ${providerStyle.border} hover:bg-zinc-900/90 transition-all duration-200 shadow-md hover:shadow-xl`}>
-      {/* Card Header */}
+    <div className="flex flex-col justify-between p-4 rounded-lg bg-[#13171f] border border-[#222733] hover:border-[#2e3545] hover:bg-[#151922] transition-colors duration-150">
+      {/* Top Header */}
       <div>
-        <div className="flex items-start justify-between gap-3 mb-2.5">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border ${providerStyle.badge}`}>
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${providerStyle.badge}`}>
               {model.provider}
             </span>
             {model.isFree && (
-              <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Free Tier
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#064e3b]/30 text-[#34d399] border border-[#059669]/30">
+                Free
               </span>
             )}
             {model.featured && (
-              <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20 flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> Featured
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#1e293b] text-[#93c5fd] border border-[#3b82f6]/30">
+                Featured
               </span>
             )}
           </div>
 
           <button
             onClick={() => onOpenDetails(model)}
-            className="text-xs text-zinc-400 hover:text-white p-1 rounded hover:bg-zinc-800 transition"
-            title="Inspect model specs"
+            className="text-[#8b94a0] hover:text-[#f1f3f7] p-1 rounded hover:bg-[#181d26] transition-colors"
+            title="View specifications"
           >
-            <Eye className="w-4 h-4" />
+            <Info className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <h3 className="text-base font-semibold text-white group-hover:text-violet-300 transition-colors">
+        <h3 className="text-sm font-semibold text-[#f1f3f7] tracking-tight">
           {model.name}
         </h3>
-        <p className="text-xs text-zinc-400 font-mono mt-0.5 mb-3 truncate" title={model.id}>
+        <p className="text-[11px] font-mono text-[#5c6470] mt-0.5 mb-2 truncate" title={model.id}>
           {model.id}
         </p>
 
-        <p className="text-xs text-zinc-300 line-clamp-3 leading-relaxed mb-4">
+        <p className="text-xs text-[#8b94a0] line-clamp-2 leading-relaxed mb-3">
           {model.description}
         </p>
       </div>
 
-      {/* Card Specs & Capabilities */}
+      {/* Metrics & Capabilities */}
       <div>
-        <div className="grid grid-cols-2 gap-2 py-3 px-3 rounded-xl bg-zinc-950/60 border border-zinc-800/60 mb-3.5 text-xs">
+        <div className="grid grid-cols-2 gap-2 py-2 px-2.5 rounded-md bg-[#0c0e12] border border-[#222733] mb-3 text-xs">
           <div>
-            <span className="text-[10px] text-zinc-400 block uppercase font-mono tracking-wider">
-              Context Window
+            <span className="text-[10px] text-[#5c6470] block font-mono uppercase tracking-wider">
+              Context
             </span>
-            <span className="font-semibold text-white font-mono">
-              {formatNumber(model.contextLength)} tokens
+            <span className="font-medium text-[#f1f3f7] font-mono text-[11px]">
+              {formatNumber(model.contextLength)} tok
             </span>
           </div>
           <div>
-            <span className="text-[10px] text-zinc-400 block uppercase font-mono tracking-wider">
-              Pricing
+            <span className="text-[10px] text-[#5c6470] block font-mono uppercase tracking-wider">
+              Prompt Cost
             </span>
-            <span className={`font-semibold font-mono ${model.isFree ? 'text-emerald-400' : 'text-zinc-200'}`}>
-              {model.isFree ? '100% Free' : formatPrice(model.pricing.prompt)}
+            <span className={`font-medium font-mono text-[11px] ${model.isFree ? 'text-[#10b981]' : 'text-[#cbd5e1]'}`}>
+              {model.isFree ? 'Free' : formatPrice(model.pricing.prompt)}
             </span>
           </div>
         </div>
 
         {/* Capability Tags */}
-        <div className="flex items-center gap-1.5 flex-wrap mb-4">
+        <div className="flex items-center gap-1 flex-wrap mb-3">
           {model.capabilities.map((cap) => (
             <span
               key={cap}
-              className="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-800 text-zinc-300 border border-zinc-700/60"
+              className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#181d26] text-[#8b94a0] border border-[#222733]"
             >
               {cap}
             </span>
           ))}
           {model.architecture && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 bg-zinc-950/80 border border-zinc-800 truncate max-w-[120px]">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono text-[#5c6470] bg-[#0c0e12] border border-[#222733] truncate max-w-[110px]">
               {model.architecture}
             </span>
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 pt-2 border-t border-zinc-800/70">
+        {/* Action Controls */}
+        <div className="flex items-center gap-1.5 pt-2 border-t border-[#222733]">
           <Link
             href={`/playground?model=${encodeURIComponent(model.id)}`}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-violet-600 hover:bg-violet-500 text-white shadow-sm shadow-violet-600/20 transition"
+            className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-colors"
           >
-            <Zap className="w-3.5 h-3.5" />
-            <span>Try in Playground</span>
-            <ArrowRight className="w-3 h-3 ml-0.5" />
+            <span>Playground</span>
+            <ArrowRight className="w-3 h-3" />
           </Link>
 
           <Link
             href={`/compare?modelA=${encodeURIComponent(model.id)}`}
-            className="px-2.5 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800/70 hover:bg-zinc-800 border border-zinc-700/60 transition"
-            title="Benchmark in Arena"
+            className="px-2.5 py-1.5 rounded-md text-xs font-medium text-[#8b94a0] hover:text-[#f1f3f7] bg-[#181d26] hover:bg-[#222733] border border-[#222733] transition-colors"
           >
             Compare
           </Link>

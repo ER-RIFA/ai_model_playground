@@ -9,14 +9,14 @@ import {
   Clock, 
   Hash, 
   Cpu, 
-  Zap, 
   Download, 
   Eye, 
   X, 
   RefreshCw, 
   ChevronLeft, 
   ChevronRight, 
-  Activity 
+  Activity,
+  ArrowRight
 } from 'lucide-react';
 import { UsageRecord, HistoryStats } from '@/types';
 import { formatDate, formatNumber } from '@/lib/utils';
@@ -32,7 +32,6 @@ export default function HistoryPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Inspection modal
   const [activeLog, setActiveLog] = useState<UsageRecord | null>(null);
 
   const fetchLogs = useCallback(async () => {
@@ -86,7 +85,7 @@ export default function HistoryPage() {
   };
 
   const handleDeleteRecord = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this log entry?')) return;
+    if (!confirm('Delete this history record?')) return;
     try {
       const res = await fetch(`/api/history?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -99,7 +98,7 @@ export default function HistoryPage() {
   };
 
   const handleClearAll = async () => {
-    if (!confirm('Are you sure you want to delete ALL usage history? This action cannot be undone.')) return;
+    if (!confirm('Clear all usage logs? This action cannot be undone.')) return;
     try {
       const res = await fetch(`/api/history`, { method: 'DELETE' });
       if (res.ok) {
@@ -116,24 +115,29 @@ export default function HistoryPage() {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(logs, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `ai_playground_history_${Date.now()}.json`);
+    downloadAnchor.setAttribute('download', `usage_history_${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-zinc-100 pb-20">
+    <div className="min-h-screen bg-[#0c0e12] text-[#f1f3f7] pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-[#222733]">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
-              <History className="w-6 h-6 text-violet-400" />
+            <div className="flex items-center gap-2 mb-1">
+              <History className="w-4 h-4 text-[#3b82f6]" />
+              <span className="text-[11px] font-mono uppercase tracking-wider text-[#3b82f6] font-medium">
+                Telemetry & Logs
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#f1f3f7]">
               Usage History & Analytics
             </h1>
-            <p className="text-xs text-zinc-400 mt-1">
-              Audit requests, response latency, token consumption, and model utilization persisted in SQLite
+            <p className="text-xs text-[#8b94a0] mt-0.5">
+              Persistent execution records, latency metrics, and token accounting stored via SQLite.
             </p>
           </div>
 
@@ -141,7 +145,7 @@ export default function HistoryPage() {
             <button
               onClick={handleExportJSON}
               disabled={logs.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition disabled:opacity-40 disabled:pointer-events-none"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-[#13171f] border border-[#222733] text-[#cbd5e1] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
               <Download className="w-3.5 h-3.5" />
               Export JSON
@@ -149,81 +153,81 @@ export default function HistoryPage() {
             <button
               onClick={handleClearAll}
               disabled={logs.length === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-950/20 border border-red-950 transition disabled:opacity-40 disabled:pointer-events-none"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#ef4444] hover:text-[#f87171] hover:bg-[#ef4444]/10 border border-[#222733] transition-colors disabled:opacity-30 disabled:pointer-events-none"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Clear All
+              Clear
             </button>
           </div>
         </div>
 
-        {/* Analytics Stats Overview Cards */}
+        {/* Analytics Summary Tiles */}
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 my-6">
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
-                <span>Total Requests</span>
-                <Activity className="w-4 h-4 text-violet-400" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-5">
+            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
+              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
+                <span>TOTAL REQUESTS</span>
+                <Activity className="w-3.5 h-3.5 text-[#3b82f6]" />
               </div>
-              <div className="text-2xl font-bold text-white font-mono">
+              <div className="text-xl font-bold text-[#f1f3f7] font-mono">
                 {stats.totalRequests}
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
-                <span>Total Tokens Processed</span>
-                <Hash className="w-4 h-4 text-cyan-400" />
+            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
+              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
+                <span>TOKENS PROCESSED</span>
+                <Hash className="w-3.5 h-3.5 text-[#38bdf8]" />
               </div>
-              <div className="text-2xl font-bold text-white font-mono">
+              <div className="text-xl font-bold text-[#f1f3f7] font-mono">
                 {formatNumber(stats.totalTokens)}
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
-                <span>Avg Generation Latency</span>
-                <Clock className="w-4 h-4 text-emerald-400" />
+            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
+              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
+                <span>AVG LATENCY</span>
+                <Clock className="w-3.5 h-3.5 text-[#10b981]" />
               </div>
-              <div className="text-2xl font-bold text-white font-mono">
+              <div className="text-xl font-bold text-[#f1f3f7] font-mono">
                 {stats.avgLatencyMs}ms
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800">
-              <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
-                <span>Most Used Model</span>
-                <Cpu className="w-4 h-4 text-amber-400" />
+            <div className="p-3.5 rounded-lg bg-[#13171f] border border-[#222733]">
+              <div className="flex items-center justify-between text-[#8b94a0] text-[11px] font-mono mb-1">
+                <span>MOST UTILIZED</span>
+                <Cpu className="w-3.5 h-3.5 text-[#fbbf24]" />
               </div>
-              <div className="text-base font-bold text-white truncate font-mono">
+              <div className="text-xs font-semibold text-[#f1f3f7] truncate font-mono mt-1">
                 {stats.mostUsedModel}
               </div>
             </div>
           </div>
         )}
 
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 mb-6">
+        {/* Filter Toolbar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 rounded-lg bg-[#13171f] border border-[#222733] mb-5">
           <form onSubmit={handleSearchSubmit} className="relative flex-1">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#5c6470] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search prompts or response text..."
+              placeholder="Search prompts or response content..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+              className="w-full pl-9 pr-4 py-1.5 bg-[#0c0e12] border border-[#222733] rounded-md text-xs text-[#f1f3f7] placeholder-[#5c6470] focus:outline-none focus:border-[#3b82f6] transition-colors"
             />
           </form>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 rounded-xl px-3 py-2 focus:outline-none"
+              className="bg-[#0c0e12] border border-[#222733] text-xs text-[#cbd5e1] rounded-md px-2.5 py-1.5 focus:outline-none cursor-pointer"
             >
               <option value="all">All Statuses</option>
-              <option value="success">Success</option>
-              <option value="error">Error</option>
+              <option value="success">Success Only</option>
+              <option value="error">Errors Only</option>
             </select>
 
             <button
@@ -231,132 +235,122 @@ export default function HistoryPage() {
                 setPage(1);
                 fetchLogs();
               }}
-              className="p-2 rounded-xl bg-zinc-800 text-zinc-300 hover:text-white transition"
+              className="p-1.5 rounded-md bg-[#0c0e12] border border-[#222733] text-[#8b94a0] hover:text-[#f1f3f7] transition-colors"
               title="Refresh"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
 
-        {/* History Table / Records */}
+        {/* Data Table */}
         {logs.length > 0 ? (
-          <div className="space-y-3">
-            <div className="hidden lg:grid grid-cols-12 gap-4 px-4 py-2 text-[11px] font-mono uppercase text-zinc-400 border-b border-zinc-800">
-              <span className="col-span-2">Model & Provider</span>
-              <span className="col-span-4">Prompt</span>
-              <span className="col-span-2">Tokens</span>
-              <span className="col-span-1">Latency</span>
-              <span className="col-span-2">Timestamp</span>
-              <span className="col-span-1 text-right">Actions</span>
-            </div>
-
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/80 hover:bg-zinc-900/90 transition flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:items-center text-xs"
-              >
-                {/* Model & Provider */}
-                <div className="lg:col-span-2 flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${log.status === 'success' ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                  <div>
-                    <span className="font-semibold text-white block truncate" title={log.modelName}>
-                      {log.modelName}
-                    </span>
-                    <span className="text-[10px] text-zinc-400 font-mono">
-                      {log.provider}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Prompt Preview */}
-                <div className="lg:col-span-4">
-                  <p className="text-zinc-300 line-clamp-2 leading-relaxed">
-                    {log.prompt}
-                  </p>
-                </div>
-
-                {/* Tokens */}
-                <div className="lg:col-span-2 font-mono text-[11px] text-zinc-400">
-                  <span className="text-white font-semibold">{log.totalTokens}</span> total ({log.promptTokens} in / {log.completionTokens} out)
-                </div>
-
-                {/* Latency */}
-                <div className="lg:col-span-1 font-mono text-[11px] text-cyan-400">
-                  {log.latencyMs}ms
-                </div>
-
-                {/* Date */}
-                <div className="lg:col-span-2 text-zinc-400 text-[11px]">
-                  {formatDate(log.createdAt)}
-                </div>
-
-                {/* Actions */}
-                <div className="lg:col-span-1 flex items-center justify-end gap-1">
-                  <button
-                    onClick={() => setActiveLog(log)}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
-                    title="View details"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
-
-                  <Link
-                    href={`/playground?model=${encodeURIComponent(log.modelId)}`}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-violet-400 hover:bg-zinc-800 transition"
-                    title="Test in playground"
-                  >
-                    <Zap className="w-4 h-4" />
-                  </Link>
-
-                  <button
-                    onClick={() => handleDeleteRecord(log.id)}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition"
-                    title="Delete record"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className="rounded-lg border border-[#222733] bg-[#13171f] overflow-x-auto">
+            <table className="min-w-full divide-y divide-[#222733] text-left text-xs">
+              <thead className="bg-[#10141b] text-[11px] font-mono uppercase text-[#5c6470]">
+                <tr>
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Model</th>
+                  <th className="px-4 py-2.5">Prompt</th>
+                  <th className="px-4 py-2.5">Tokens</th>
+                  <th className="px-4 py-2.5">Latency</th>
+                  <th className="px-4 py-2.5">Timestamp</th>
+                  <th className="px-4 py-2.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#222733]/60">
+                {logs.map((log) => (
+                  <tr key={log.id} className="hover:bg-[#151922] transition-colors">
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block w-2 h-2 rounded-sm ${
+                          log.status === 'success' ? 'bg-[#10b981]' : 'bg-[#ef4444]'
+                        }`}
+                        title={log.status}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-[#f1f3f7]">{log.modelName}</div>
+                      <div className="text-[10px] font-mono text-[#5c6470]">{log.provider}</div>
+                    </td>
+                    <td className="px-4 py-3 max-w-xs">
+                      <p className="text-[#cbd5e1] truncate">{log.prompt}</p>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-[11px] text-[#cbd5e1]">
+                      {log.totalTokens}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-[11px] text-[#38bdf8]">
+                      {log.latencyMs}ms
+                    </td>
+                    <td className="px-4 py-3 text-[11px] text-[#8b94a0]">
+                      {formatDate(log.createdAt)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => setActiveLog(log)}
+                          className="p-1 rounded text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors"
+                          title="Inspect"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <Link
+                          href={`/playground?model=${encodeURIComponent(log.modelId)}`}
+                          className="p-1 rounded text-[#8b94a0] hover:text-[#3b82f6] hover:bg-[#181d26] transition-colors"
+                          title="Replay in playground"
+                        >
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteRecord(log.id)}
+                          className="p-1 rounded text-[#8b94a0] hover:text-[#ef4444] hover:bg-[#181d26] transition-colors"
+                          title="Delete record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
             {/* Pagination Controls */}
-            <div className="flex items-center justify-between pt-4 px-2">
-              <span className="text-xs text-zinc-400">
-                Page {page} of {totalPages} ({totalCount} total entries)
+            <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#222733] text-xs text-[#8b94a0] font-mono">
+              <span>
+                Page {page} of {totalPages} ({totalCount} total)
               </span>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white disabled:opacity-40 disabled:pointer-events-none transition"
+                  className="p-1 rounded bg-[#0c0e12] border border-[#222733] text-[#8b94a0] hover:text-[#f1f3f7] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white disabled:opacity-40 disabled:pointer-events-none transition"
+                  className="p-1 rounded bg-[#0c0e12] border border-[#222733] text-[#8b94a0] hover:text-[#f1f3f7] disabled:opacity-30 disabled:pointer-events-none transition-colors"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           </div>
         ) : (
-          <div className="p-16 text-center rounded-2xl bg-zinc-900/30 border border-zinc-800">
-            <History className="w-10 h-10 text-zinc-500 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-white mb-1">No usage logs yet</h3>
-            <p className="text-xs text-zinc-400 max-w-sm mx-auto mb-4">
-              Requests made in the playground or arena are automatically recorded here with token and latency metrics.
+          <div className="p-12 text-center rounded-lg bg-[#13171f] border border-[#222733]">
+            <h3 className="text-sm font-semibold text-[#f1f3f7] mb-1">No execution history recorded</h3>
+            <p className="text-xs text-[#8b94a0] max-w-sm mx-auto mb-3">
+              Requests made in the playground or arena will automatically be logged here with metrics.
             </p>
             <Link
               href="/playground"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-xl transition"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-medium rounded-md transition-colors"
             >
-              <Zap className="w-3.5 h-3.5" />
-              Try Playground
+              <span>Open Playground</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         )}
@@ -364,64 +358,53 @@ export default function HistoryPage() {
 
       {/* Detail Inspection Modal */}
       {activeLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-950/70">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-violet-600/20 text-violet-400">
-                  <Cpu className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">{activeLog.modelName}</h3>
-                  <span className="text-[11px] text-zinc-400 font-mono">
-                    {formatDate(activeLog.createdAt)} • {activeLog.latencyMs}ms • {activeLog.totalTokens} tokens
-                  </span>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-none animate-fade-in">
+          <div className="bg-[#13171f] border border-[#2e3545] rounded-lg w-full max-w-2xl overflow-hidden shadow-xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#222733] bg-[#10141b]">
+              <div>
+                <h3 className="text-sm font-semibold text-[#f1f3f7]">{activeLog.modelName}</h3>
+                <span className="text-[11px] text-[#5c6470] font-mono">
+                  {formatDate(activeLog.createdAt)} • {activeLog.latencyMs}ms • {activeLog.totalTokens} tokens
+                </span>
               </div>
-
               <button
                 onClick={() => setActiveLog(null)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-white"
+                className="p-1 rounded text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-5">
-              {/* Prompt */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
               <div>
-                <span className="text-xs uppercase font-mono tracking-wider text-zinc-400 font-semibold block mb-2">
+                <span className="text-[11px] uppercase font-mono tracking-wider text-[#5c6470] font-medium block mb-1">
                   User Prompt
                 </span>
-                <div className="p-4 rounded-xl bg-zinc-950/70 border border-zinc-800 text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">
+                <div className="p-3 rounded-md bg-[#0c0e12] border border-[#222733] text-[#cbd5e1] whitespace-pre-wrap leading-relaxed">
                   {activeLog.prompt}
                 </div>
               </div>
 
-              {/* Response */}
               <div>
-                <span className="text-xs uppercase font-mono tracking-wider text-zinc-400 font-semibold block mb-2">
-                  Model Response
+                <span className="text-[11px] uppercase font-mono tracking-wider text-[#5c6470] font-medium block mb-1">
+                  Response
                 </span>
-                <div className="p-4 rounded-xl bg-zinc-950/70 border border-zinc-800 text-sm">
+                <div className="p-3 rounded-md bg-[#0c0e12] border border-[#222733]">
                   {activeLog.response ? (
                     <MarkdownRenderer content={activeLog.response} />
                   ) : (
-                    <span className="text-red-400 text-xs">
-                      Error: {activeLog.errorMessage || 'No response generated'}
+                    <span className="text-[#ef4444]">
+                      Error: {activeLog.errorMessage || 'No response returned.'}
                     </span>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-800 bg-zinc-950/40">
+            <div className="flex items-center justify-between px-5 py-2.5 border-t border-[#222733] bg-[#10141b]">
               <button
                 onClick={() => setActiveLog(null)}
-                className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white"
+                className="px-3 py-1.5 text-xs text-[#8b94a0] hover:text-[#f1f3f7] rounded-md transition-colors"
               >
                 Close
               </button>
@@ -429,10 +412,10 @@ export default function HistoryPage() {
               <Link
                 href={`/playground?model=${encodeURIComponent(activeLog.modelId)}`}
                 onClick={() => setActiveLog(null)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-colors"
               >
-                <Zap className="w-3.5 h-3.5" />
-                Open in Playground
+                <span>Replay in Playground</span>
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </div>

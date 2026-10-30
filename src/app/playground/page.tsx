@@ -7,7 +7,6 @@ import {
   Square, 
   Trash2, 
   Sliders, 
-  Sparkles, 
   Copy, 
   Check, 
   AlertCircle, 
@@ -17,7 +16,8 @@ import {
   ChevronDown, 
   Clock, 
   Hash, 
-  SlidersHorizontal
+  SlidersHorizontal,
+  Terminal
 } from 'lucide-react';
 import { AIModel, ChatMessage, ModelParameters } from '@/types';
 import { POPULAR_MODELS } from '@/data/models';
@@ -26,19 +26,19 @@ import { estimateTokens } from '@/lib/utils';
 
 const PRESET_PROMPTS = [
   {
-    title: '🧠 Logic Puzzle',
-    prompt: 'Solve this step by step: A farmer needs to cross a river with a wolf, a goat, and a cabbage. The boat can only carry the farmer and one item. If left alone, the wolf eats the goat, and the goat eats the cabbage. How does he cross?',
-  },
-  {
-    title: '💻 TypeScript Refactor',
+    title: 'Algorithm Optimization',
     prompt: 'Write an asynchronous retry function in TypeScript with exponential backoff and jitter. Include type generics and cancellation token support.',
   },
   {
-    title: '🏗️ System Architecture',
+    title: 'Logic & Deductive Reasoning',
+    prompt: 'Solve this step by step: A farmer needs to cross a river with a wolf, a goat, and a cabbage. The boat can only carry the farmer and one item. If left alone, the wolf eats the goat, and the goat eats the cabbage. How does he cross?',
+  },
+  {
+    title: 'System Architecture',
     prompt: 'Design a high-throughput webhook delivery system capable of processing 100,000 events/sec with guaranteed at-least-once delivery.',
   },
   {
-    title: '📊 SQL vs NoSQL Analysis',
+    title: 'Database Comparison',
     prompt: 'Provide a structured comparison between PostgreSQL and MongoDB for a real-time analytics workload with time-series metrics.',
   },
 ];
@@ -61,14 +61,13 @@ function PlaygroundContent() {
     temperature: 0.7,
     maxTokens: 2048,
     topP: 1.0,
-    systemPrompt: 'You are a helpful, expert AI assistant. Answer accurately, thoughtfully, and clearly.',
+    systemPrompt: 'You are an expert AI assistant. Provide concise, production-ready, and accurate answers.',
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load models from API or keep fallback
   useEffect(() => {
     async function loadModels() {
       try {
@@ -86,7 +85,6 @@ function PlaygroundContent() {
     loadModels();
   }, []);
 
-  // Update selected model if URL query changes
   useEffect(() => {
     const m = searchParams.get('model');
     if (m) {
@@ -94,12 +92,10 @@ function PlaygroundContent() {
     }
   }, [searchParams]);
 
-  // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isGenerating]);
 
-  // Current selected model object
   const currentModel = models.find((m) => m.id === selectedModelId) || models[0] || POPULAR_MODELS[0];
 
   const handleSendMessage = async () => {
@@ -124,7 +120,6 @@ function PlaygroundContent() {
     setMessages(newMessages);
     setInputPrompt('');
 
-    // Prepare assistant placeholder for streaming
     const assistantMessageId = `asst-${Date.now()}`;
     const assistantPlaceholder: ChatMessage = {
       id: assistantMessageId,
@@ -170,7 +165,7 @@ function PlaygroundContent() {
       }
 
       if (!response.body) {
-        throw new Error('ReadableStream not supported on this browser.');
+        throw new Error('Streaming not supported in this environment.');
       }
 
       const reader = response.body.getReader();
@@ -231,7 +226,7 @@ function PlaygroundContent() {
       }
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        // User aborted, keep partial stream
+        // Handled abort
       } else {
         const msg = err.message || 'An unexpected error occurred during generation.';
         setErrorMessage(msg);
@@ -241,7 +236,7 @@ function PlaygroundContent() {
               ? {
                   ...m,
                   error: msg,
-                  content: m.content || `⚠️ Generation Failed: ${msg}`,
+                  content: m.content || `⚠️ Generation Error: ${msg}`,
                 }
               : m
           )
@@ -280,64 +275,61 @@ function PlaygroundContent() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-[#07090e] text-zinc-100 overflow-hidden">
-      {/* Top Toolbar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur shrink-0 gap-3">
-        {/* Model Selection Dropdown */}
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] bg-[#0c0e12] text-[#f1f3f7] overflow-hidden">
+      {/* Top Studio Control Bar */}
+      <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-[#222733] bg-[#10141b] shrink-0 gap-3">
+        {/* Model Selector */}
         <div className="flex items-center gap-3">
           <div className="relative">
             <select
               value={selectedModelId}
               onChange={(e) => setSelectedModelId(e.target.value)}
-              className="appearance-none bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-sm font-semibold text-white rounded-xl pl-9 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition cursor-pointer"
+              className="appearance-none bg-[#13171f] border border-[#222733] hover:border-[#2e3545] text-xs font-medium text-[#f1f3f7] rounded-md pl-8 pr-7 py-1.5 focus:outline-none focus:border-[#3b82f6] transition-colors cursor-pointer"
             >
               {models.map((model) => (
-                <option key={model.id} value={model.id}>
+                <option key={model.id} value={model.id} className="bg-[#13171f]">
                   {model.name} {model.isFree ? '(Free)' : ''}
                 </option>
               ))}
             </select>
-            <Cpu className="w-4 h-4 text-violet-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <ChevronDown className="w-4 h-4 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Cpu className="w-3.5 h-3.5 text-[#3b82f6] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-[#5c6470] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
-          {/* Model Badges */}
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#181d26] text-[#8b94a0] border border-[#222733]">
               {currentModel.provider}
             </span>
             {currentModel.isFree && (
-              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#064e3b]/30 text-[#34d399] border border-[#059669]/30">
                 Free
               </span>
             )}
-            <span className="text-xs text-zinc-400 font-mono">
-              Ctx: {Math.round(currentModel.contextLength / 1000)}k
+            <span className="text-[11px] text-[#5c6470] font-mono">
+              {Math.round(currentModel.contextLength / 1000)}k ctx
             </span>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Parameters Toggle */}
+        {/* Toolbar Action Buttons */}
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setShowParameters(!showParameters)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors ${
               showParameters
-                ? 'bg-violet-600/20 border-violet-500/50 text-violet-300'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800'
+                ? 'bg-[#1e293b] border-[#3b82f6]/40 text-[#93c5fd]'
+                : 'bg-[#13171f] border-[#222733] text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26]'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Parameters</span>
           </button>
 
-          {/* Clear Chat */}
           <button
             onClick={handleClearChat}
             disabled={messages.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-400 hover:text-red-400 hover:bg-red-950/20 border border-zinc-800 transition disabled:opacity-40 disabled:pointer-events-none"
-            title="Clear conversation"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-[#8b94a0] hover:text-[#ef4444] hover:bg-[#ef4444]/10 border border-[#222733] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+            title="Clear chat"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Clear</span>
@@ -347,35 +339,34 @@ function PlaygroundContent() {
 
       {/* Main Container: Chat + Parameters Drawer */}
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Chat Area */}
+        {/* Chat Thread */}
         <div className="flex-1 flex flex-col h-full overflow-hidden">
-          {/* Messages Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {messages.length === 0 ? (
-              /* Empty State */
-              <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-12">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600/20 to-cyan-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400 mb-4 shadow-xl">
-                  <Sparkles className="w-7 h-7" />
+              /* Empty Benchmark Slate */
+              <div className="h-full flex flex-col items-center justify-center text-center max-w-xl mx-auto py-8">
+                <div className="w-10 h-10 rounded-md bg-[#13171f] border border-[#222733] flex items-center justify-center text-[#3b82f6] mb-3">
+                  <Terminal className="w-5 h-5" />
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2">
+                <h2 className="text-base font-semibold text-[#f1f3f7] mb-1">
                   Ready to test with {currentModel.name}
                 </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 max-w-md mb-8">
-                  Enter a prompt below or pick one of the sample benchmarks to explore responses, measure tokens, and observe generation latency.
+                <p className="text-xs text-[#8b94a0] max-w-sm mb-6 leading-relaxed">
+                  Submit a prompt below or pick a preset benchmark to test latency, observe streaming throughput, and inspect token consumption.
                 </p>
 
-                {/* Preset Prompts Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
+                {/* Preset Prompts */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full text-left">
                   {PRESET_PROMPTS.map((preset, idx) => (
                     <button
                       key={idx}
                       onClick={() => setInputPrompt(preset.prompt)}
-                      className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 hover:border-violet-500/40 hover:bg-zinc-900 transition text-left group"
+                      className="p-3 rounded-md bg-[#13171f] border border-[#222733] hover:border-[#2e3545] hover:bg-[#181d26] transition-colors text-left"
                     >
-                      <span className="text-xs font-semibold text-violet-300 block mb-1">
+                      <span className="text-xs font-medium text-[#f1f3f7] block mb-0.5">
                         {preset.title}
                       </span>
-                      <p className="text-xs text-zinc-400 line-clamp-2 group-hover:text-zinc-300">
+                      <p className="text-[11px] text-[#8b94a0] line-clamp-2 leading-relaxed">
                         {preset.prompt}
                       </p>
                     </button>
@@ -383,36 +374,34 @@ function PlaygroundContent() {
                 </div>
               </div>
             ) : (
-              /* Message Thread */
+              /* Active Messages */
               messages.map((message, idx) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 sm:gap-4 max-w-4xl mx-auto ${
+                  className={`flex gap-3 max-w-3xl mx-auto ${
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
-                  {/* Assistant Avatar */}
                   {message.role === 'assistant' && (
-                    <div className="w-8 h-8 rounded-xl bg-violet-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 shrink-0 mt-1">
-                      <Bot className="w-4 h-4" />
+                    <div className="w-6 h-6 rounded bg-[#181d26] border border-[#222733] flex items-center justify-center text-[#3b82f6] shrink-0 mt-1">
+                      <Bot className="w-3.5 h-3.5" />
                     </div>
                   )}
 
-                  {/* Message Bubble */}
                   <div
-                    className={`group relative rounded-2xl px-4 py-3 sm:px-5 sm:py-4 max-w-[85%] sm:max-w-[78%] transition-all ${
+                    className={`rounded-md px-4 py-3 max-w-[85%] text-xs transition-colors ${
                       message.role === 'user'
-                        ? 'bg-violet-600 text-white rounded-tr-sm shadow-md'
-                        : 'bg-zinc-900/90 border border-zinc-800 rounded-tl-sm text-zinc-200 shadow-md'
+                        ? 'bg-[#181d26] border border-[#2e3545] text-[#f1f3f7]'
+                        : 'bg-[#13171f] border border-[#222733] text-[#e1e4ea]'
                     }`}
                   >
                     {/* Header info */}
-                    <div className="flex items-center justify-between gap-3 mb-1.5 text-[11px] opacity-80">
-                      <span className="font-semibold flex items-center gap-1">
+                    <div className="flex items-center justify-between gap-3 mb-1.5 text-[11px]">
+                      <span className="font-semibold text-[#8b94a0]">
                         {message.role === 'user' ? 'You' : message.model || currentModel.name}
                       </span>
                       {message.latencyMs && (
-                        <span className="font-mono flex items-center gap-1 text-[10px] text-zinc-400">
+                        <span className="font-mono flex items-center gap-1 text-[10px] text-[#5c6470]">
                           <Clock className="w-3 h-3" />
                           {message.latencyMs}ms
                         </span>
@@ -421,22 +410,22 @@ function PlaygroundContent() {
 
                     {/* Content */}
                     {message.role === 'user' ? (
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                      <p className="whitespace-pre-wrap leading-relaxed text-xs">{message.content}</p>
                     ) : (
                       <div>
                         {message.content ? (
                           <MarkdownRenderer content={message.content} />
                         ) : isGenerating ? (
-                          <div className="flex items-center gap-2 text-xs text-zinc-400 py-1">
-                            <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
+                          <div className="flex items-center gap-2 text-xs text-[#8b94a0] py-1">
+                            <span className="w-1.5 h-1.5 rounded-sm bg-[#3b82f6] animate-pulse" />
                             <span>Generating response...</span>
                           </div>
                         ) : null}
                       </div>
                     )}
 
-                    {/* Footer Stats & Actions */}
-                    <div className="mt-2.5 pt-2 border-t border-zinc-700/40 flex items-center justify-between text-[10px] text-zinc-400 font-mono">
+                    {/* Footer Metrics */}
+                    <div className="mt-2.5 pt-2 border-t border-[#222733] flex items-center justify-between text-[10px] text-[#5c6470] font-mono">
                       <div className="flex items-center gap-2">
                         {message.tokenUsage?.total && (
                           <span className="flex items-center gap-1">
@@ -446,42 +435,36 @@ function PlaygroundContent() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleCopyMessage(message.content, idx)}
-                          className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition"
-                          title="Copy text"
-                        >
-                          {copiedIndex === idx ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleCopyMessage(message.content, idx)}
+                        className="p-1 rounded hover:bg-[#181d26] text-[#5c6470] hover:text-[#f1f3f7] transition-colors"
+                        title="Copy text"
+                      >
+                        {copiedIndex === idx ? (
+                          <Check className="w-3.5 h-3.5 text-[#10b981]" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
                     </div>
                   </div>
 
-                  {/* User Avatar */}
                   {message.role === 'user' && (
-                    <div className="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-300 shrink-0 mt-1">
-                      <User className="w-4 h-4" />
+                    <div className="w-6 h-6 rounded bg-[#181d26] border border-[#222733] flex items-center justify-center text-[#8b94a0] shrink-0 mt-1">
+                      <User className="w-3.5 h-3.5" />
                     </div>
                   )}
                 </div>
               ))
             )}
 
-            {/* Error Notification Banner */}
+            {/* Error Banner */}
             {errorMessage && (
-              <div className="max-w-4xl mx-auto p-4 rounded-xl bg-red-950/30 border border-red-900/50 flex items-start gap-3 text-xs text-red-300 animate-fade-in">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <div className="max-w-3xl mx-auto p-3 rounded-md bg-[#ef4444]/10 border border-[#ef4444]/30 flex items-start gap-2.5 text-xs text-[#fca5a5]">
+                <AlertCircle className="w-4 h-4 text-[#ef4444] shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <span className="font-semibold block mb-0.5">Generation Error:</span>
+                  <span className="font-semibold block mb-0.5">API Error:</span>
                   <span>{errorMessage}</span>
-                  <p className="mt-1 text-[11px] text-zinc-400">
-                    Tip: If using rate-limited models or external keys, verify credentials in Settings or choose another model from the dropdown.
-                  </p>
                 </div>
               </div>
             )}
@@ -489,93 +472,85 @@ function PlaygroundContent() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Prompt Input Box */}
-          <div className="p-4 sm:p-5 border-t border-zinc-800/80 bg-zinc-950/90 shrink-0">
-            <div className="max-w-4xl mx-auto">
-              <div className="relative rounded-2xl bg-zinc-900 border border-zinc-800 focus-within:border-violet-500/70 focus-within:ring-2 focus-within:ring-violet-500/20 transition shadow-lg">
+          {/* Bottom Prompt Input */}
+          <div className="p-3.5 sm:p-4 border-t border-[#222733] bg-[#10141b] shrink-0">
+            <div className="max-w-3xl mx-auto">
+              <div className="relative rounded-md bg-[#0c0e12] border border-[#222733] focus-within:border-[#3b82f6] transition-colors">
                 <textarea
                   ref={textareaRef}
                   value={inputPrompt}
                   onChange={(e) => setInputPrompt(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder={`Ask ${currentModel.name} anything... (Ctrl + Enter to send)`}
+                  placeholder={`Send a prompt to ${currentModel.name}... (Ctrl + Enter)`}
                   rows={3}
-                  className="w-full bg-transparent p-4 pr-14 text-sm text-white placeholder-zinc-500 resize-none focus:outline-none"
+                  className="w-full bg-transparent p-3 pr-12 text-xs text-[#f1f3f7] placeholder-[#5c6470] resize-none focus:outline-none leading-relaxed"
                 />
 
-                {/* Send / Stop Buttons */}
-                <div className="absolute right-3 bottom-3 flex items-center gap-2">
+                <div className="absolute right-2.5 bottom-2.5">
                   {isGenerating ? (
                     <button
                       onClick={handleStopGenerating}
-                      className="p-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white shadow-md transition"
+                      className="p-1.5 rounded-md bg-[#ef4444] hover:bg-[#dc2626] text-white transition-colors"
                       title="Stop generating"
                     >
-                      <Square className="w-4 h-4 fill-white" />
+                      <Square className="w-3.5 h-3.5 fill-white" />
                     </button>
                   ) : (
                     <button
                       onClick={handleSendMessage}
                       disabled={!inputPrompt.trim()}
-                      className="p-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white shadow-md shadow-violet-600/30 transition disabled:opacity-40 disabled:pointer-events-none"
+                      className="p-1.5 rounded-md bg-[#2563eb] hover:bg-[#1d4ed8] text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
                       title="Send prompt"
                     >
-                      <Send className="w-4 h-4" />
+                      <Send className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Bottom input info hints */}
-              <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-zinc-400 font-mono">
-                <div className="flex items-center gap-2">
-                  <span>~{estimateTokens(inputPrompt)} tokens</span>
-                  <span>•</span>
-                  <span>Model: {currentModel.name}</span>
-                </div>
-                <div className="hidden sm:block">
-                  Press <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">Enter</kbd> to submit
-                </div>
+              {/* Monospace token info */}
+              <div className="flex items-center justify-between mt-1.5 px-1 text-[11px] text-[#5c6470] font-mono">
+                <span>~{estimateTokens(inputPrompt)} tokens</span>
+                <span className="hidden sm:inline">Press Ctrl+Enter to send</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Parameters Sidebar (Drawer) */}
+        {/* Parameters Sidebar */}
         {showParameters && (
-          <aside className="w-80 border-l border-zinc-800 bg-zinc-950 p-5 overflow-y-auto space-y-6 shrink-0 animate-slide-left">
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-violet-400" />
-                Parameters
+          <aside className="w-72 border-l border-[#222733] bg-[#10141b] p-4 overflow-y-auto space-y-4 shrink-0 text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-[#222733]">
+              <h3 className="font-semibold text-[#f1f3f7] flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-[#3b82f6]" />
+                Inference Parameters
               </h3>
               <button
                 onClick={() => setShowParameters(false)}
-                className="text-xs text-zinc-400 hover:text-white"
+                className="text-[11px] text-[#8b94a0] hover:text-[#f1f3f7]"
               >
                 Close
               </button>
             </div>
 
             {/* System Prompt */}
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-zinc-300 block">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-[#8b94a0] block">
                 System Prompt
               </label>
               <textarea
                 value={parameters.systemPrompt}
                 onChange={(e) => setParameters({ ...parameters, systemPrompt: e.target.value })}
                 rows={3}
-                className="w-full p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 resize-none"
-                placeholder="Direct assistant behavior..."
+                className="w-full p-2 bg-[#0c0e12] border border-[#222733] rounded-md text-xs text-[#f1f3f7] placeholder-[#5c6470] focus:outline-none focus:border-[#3b82f6] resize-none"
               />
             </div>
 
-            {/* Temperature Slider */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <label className="text-zinc-300 font-medium">Temperature</label>
-                <span className="font-mono text-violet-400">{parameters.temperature}</span>
+            {/* Temperature */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <label className="text-[#8b94a0]">Temperature</label>
+                <span className="font-mono text-[#38bdf8]">{parameters.temperature}</span>
               </div>
               <input
                 type="range"
@@ -584,19 +559,19 @@ function PlaygroundContent() {
                 step="0.05"
                 value={parameters.temperature}
                 onChange={(e) => setParameters({ ...parameters, temperature: parseFloat(e.target.value) })}
-                className="w-full accent-violet-600 bg-zinc-800 rounded-lg h-1.5 cursor-pointer"
+                className="w-full accent-[#2563eb] bg-[#222733] rounded h-1 cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-zinc-400">
-                <span>0.0 (Deterministic)</span>
+              <div className="flex justify-between text-[10px] text-[#5c6470]">
+                <span>0.0 (Strict)</span>
                 <span>1.5 (Creative)</span>
               </div>
             </div>
 
             {/* Max Output Tokens */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <label className="text-zinc-300 font-medium">Max Output Tokens</label>
-                <span className="font-mono text-violet-400">{parameters.maxTokens}</span>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <label className="text-[#8b94a0]">Max Output Tokens</label>
+                <span className="font-mono text-[#38bdf8]">{parameters.maxTokens}</span>
               </div>
               <input
                 type="range"
@@ -605,19 +580,15 @@ function PlaygroundContent() {
                 step="128"
                 value={parameters.maxTokens}
                 onChange={(e) => setParameters({ ...parameters, maxTokens: parseInt(e.target.value, 10) })}
-                className="w-full accent-violet-600 bg-zinc-800 rounded-lg h-1.5 cursor-pointer"
+                className="w-full accent-[#2563eb] bg-[#222733] rounded h-1 cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] text-zinc-400">
-                <span>128</span>
-                <span>4096</span>
-              </div>
             </div>
 
-            {/* Top P Slider */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <label className="text-zinc-300 font-medium">Top P (Nucleus Sampling)</label>
-                <span className="font-mono text-violet-400">{parameters.topP}</span>
+            {/* Top P */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <label className="text-[#8b94a0]">Top P</label>
+                <span className="font-mono text-[#38bdf8]">{parameters.topP}</span>
               </div>
               <input
                 type="range"
@@ -626,23 +597,22 @@ function PlaygroundContent() {
                 step="0.05"
                 value={parameters.topP}
                 onChange={(e) => setParameters({ ...parameters, topP: parseFloat(e.target.value) })}
-                className="w-full accent-violet-600 bg-zinc-800 rounded-lg h-1.5 cursor-pointer"
+                className="w-full accent-[#2563eb] bg-[#222733] rounded h-1 cursor-pointer"
               />
             </div>
 
-            {/* Reset to Defaults */}
             <button
               onClick={() =>
                 setParameters({
                   temperature: 0.7,
                   maxTokens: 2048,
                   topP: 1.0,
-                  systemPrompt: 'You are a helpful, expert AI assistant. Answer accurately, thoughtfully, and clearly.',
+                  systemPrompt: 'You are an expert AI assistant. Provide concise, production-ready, and accurate answers.',
                 })
               }
-              className="w-full py-2 text-xs font-medium text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg transition"
+              className="w-full py-1.5 text-xs text-[#8b94a0] hover:text-[#f1f3f7] bg-[#13171f] hover:bg-[#181d26] border border-[#222733] rounded-md transition-colors"
             >
-              Reset to Defaults
+              Reset Defaults
             </button>
           </aside>
         )}
@@ -655,11 +625,8 @@ export default function PlaygroundPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)] bg-[#07090e] text-zinc-400 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-violet-500 animate-pulse" />
-            <span>Loading AI Playground...</span>
-          </div>
+        <div className="flex items-center justify-center h-[calc(100vh-3.5rem)] bg-[#0c0e12] text-[#8b94a0] text-xs font-mono">
+          Loading Playground...
         </div>
       }
     >
@@ -667,4 +634,3 @@ export default function PlaygroundPage() {
     </React.Suspense>
   );
 }
-

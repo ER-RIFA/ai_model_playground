@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Key, ShieldCheck, ExternalLink, Trash2, CheckCircle2 } from 'lucide-react';
+import { X, Key, ShieldCheck, ExternalLink, Trash2, Check } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
     setTimeout(() => {
       setSaved(false);
       onClose();
-    }, 800);
+    }, 600);
   };
 
   const handleClear = () => {
@@ -48,50 +48,45 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-none animate-fade-in">
+      <div className="bg-[#13171f] border border-[#2e3545] rounded-lg w-full max-w-md overflow-hidden shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/80 bg-zinc-900/50">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#222733] bg-[#10141b]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-violet-600/20 text-violet-400 border border-violet-500/30">
-              <Key className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-white">API Configuration</h2>
-              <p className="text-xs text-zinc-400">Bring Your Own Key (BYOK)</p>
-            </div>
+            <Key className="w-4 h-4 text-[#3b82f6]" />
+            <h2 className="text-sm font-semibold text-[#f1f3f7]">API Key Settings</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
+            className="p-1 rounded text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-4">
-          <div className="space-y-2">
-            <label className="block text-xs font-medium text-zinc-300">
-              OpenRouter API Key
+        <div className="p-5 space-y-4 text-xs">
+          <div className="space-y-1.5">
+            <label className="block font-medium text-[#f1f3f7]">
+              OpenRouter API Key (Optional)
             </label>
             <input
               type="password"
               placeholder="sk-or-v1-..."
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 font-mono"
+              className="w-full px-3 py-2 bg-[#0c0e12] border border-[#222733] rounded-md text-xs text-[#f1f3f7] placeholder-[#5c6470] focus:outline-none focus:border-[#3b82f6] font-mono transition-colors"
             />
-            <p className="text-xs text-zinc-400">
-              Leave blank to use the server default key or the built-in intelligent demo simulation.
+            <p className="text-[11px] text-[#8b94a0] leading-relaxed">
+              If left blank, the system utilizes the server default key or built-in model simulation.
             </p>
           </div>
 
           {/* Privacy Note */}
-          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-zinc-950/60 border border-zinc-800/60 text-xs text-zinc-400">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 p-3 rounded-md bg-[#0c0e12] border border-[#222733] text-[11px] text-[#8b94a0] leading-relaxed">
+            <ShieldCheck className="w-4 h-4 text-[#10b981] shrink-0 mt-0.5" />
             <span>
-              Your key is stored securely in your browser&apos;s <code className="text-zinc-300">localStorage</code>. It is sent exclusively via encrypted headers to proxy requests and is never stored in any database.
+              Your API key is saved exclusively in your browser&apos;s local storage and passed directly via secure request headers. It is never logged in any database.
             </span>
           </div>
 
@@ -99,18 +94,18 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
             href="https://openrouter.ai/keys"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs text-[#3b82f6] hover:text-[#60a5fa] hover:underline"
           >
-            Get a free OpenRouter API key <ExternalLink className="w-3 h-3" />
+            Manage OpenRouter API Keys <ExternalLink className="w-3 h-3" />
           </a>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 bg-zinc-950/40 border-t border-zinc-800/80">
+        <div className="flex items-center justify-between px-5 py-3 bg-[#10141b] border-t border-[#222733]">
           <button
             onClick={handleClear}
             disabled={!apiKey}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-lg transition disabled:opacity-40 disabled:pointer-events-none"
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-[#ef4444] hover:text-[#f87171] hover:bg-[#ef4444]/10 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Clear
@@ -119,18 +114,18 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg transition"
+              className="px-3 py-1.5 text-xs font-medium text-[#8b94a0] hover:text-[#f1f3f7] hover:bg-[#181d26] rounded-md transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-medium rounded-lg shadow-lg shadow-violet-600/20 transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-medium rounded-md transition-colors"
             >
               {saved ? (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-white" />
-                  Saved!
+                  <Check className="w-3.5 h-3.5 text-white" />
+                  Saved
                 </>
               ) : (
                 'Save Key'
