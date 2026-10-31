@@ -80,7 +80,7 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
               className="w-full px-3 py-2 bg-[#0B0C0E] border border-[#222630] rounded text-xs text-[#F1F3F5] placeholder-[#64748B] focus:outline-none focus:border-[#2563EB] font-mono transition-colors"
             />
             <p className="text-[11px] text-[#64748B] leading-relaxed">
-              Bring Your Own Key. If omitted, the workbench operates via server environment keys or intelligent simulated benchmarking.
+              Bring Your Own Key. If omitted, the workbench uses the server key or demo simulation mode.
             </p>
           </div>
 
@@ -88,7 +88,7 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
           <div className="flex items-start gap-2.5 p-3 rounded bg-[#0B0C0E] border border-[#222630] text-[11px] text-[#9CA3AF] leading-relaxed">
             <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
             <span>
-              Credentials are saved strictly in your client <code className="text-[#F1F3F5] font-mono">localStorage</code> and forwarded as an auth header. Never stored on disk or server databases.
+              This key is saved only in this browser&apos;s <code className="text-[#F1F3F5] font-mono">localStorage</code> and sent in the request body over HTTPS. It is not encrypted by the browser and is never stored in the application database. Use a restricted, disposable key when possible.
             </span>
           </div>
 

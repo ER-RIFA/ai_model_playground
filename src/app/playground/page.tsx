@@ -190,39 +190,32 @@ function PlaygroundContent() {
           const dataStr = trimmed.replace(/^data:\s*/, '');
           if (!dataStr) continue;
 
-          try {
-            const data = JSON.parse(dataStr);
-
-            if (data.type === 'chunk' && data.text) {
-              streamedContent += data.text;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === assistantMessageId
-                    ? { ...msg, content: streamedContent }
-                    : msg
-                )
-              );
-            } else if (data.type === 'done') {
-              const latencyMs = data.latencyMs || Date.now() - startTime;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === assistantMessageId
-                    ? {
-                        ...msg,
-                        content: streamedContent,
-                        latencyMs,
-                        tokenUsage: data.tokenUsage,
-                      }
-                    : msg
-                )
-              );
-            } else if (data.type === 'error') {
-              throw new Error(data.message || 'Stream error occurred.');
-            }
-          } catch (e: any) {
-            if (e.message && e.message.includes('Stream error')) {
-              throw e;
-            }
+          const data = JSON.parse(dataStr);
+          if (data.type === 'chunk' && data.text) {
+            streamedContent += data.text;
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: streamedContent }
+                  : msg
+              )
+            );
+          } else if (data.type === 'done') {
+            const latencyMs = data.latencyMs || Date.now() - startTime;
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? {
+                      ...msg,
+                      content: streamedContent,
+                      latencyMs,
+                      tokenUsage: data.tokenUsage,
+                    }
+                  : msg
+              )
+            );
+          } else if (data.type === 'error') {
+            throw new Error(data.message || 'Stream error occurred.');
           }
         }
       }

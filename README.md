@@ -1,6 +1,6 @@
 # ⚡ AI Model Playground & Benchmark Arena
 
-A modern, full-stack web application designed for exploring, benchmarking, and testing state-of-the-art AI models (DeepSeek R1, Llama 3.3, Claude 3.5 Sonnet, GPT-4o, Gemini 2.0 Flash, Qwen 2.5 Coder, Mistral Large 2, etc.) with real-time token streaming, side-by-side model comparison, and full usage analytics persisted in SQLite via Prisma ORM.
+A modern, full-stack web application designed for exploring, benchmarking, and testing state-of-the-art AI models with real-time token streaming, side-by-side model comparison, and usage analytics persisted in PostgreSQL via Prisma ORM.
 
 ---
 
@@ -27,7 +27,7 @@ A modern, full-stack web application designed for exploring, benchmarking, and t
 - **Comparative Output Evaluation:** Evaluate reasoning steps, code style, and factual depth side-by-side.
 
 ### 4. 📜 Usage History & Analytics (`/history`)
-- **Database Persistence:** Every request, response, latency (ms), and token count is stored in SQLite via Prisma ORM.
+- **Database Persistence:** Every request, response, latency (ms), token count, execution mode, and ownership session is stored in PostgreSQL via Prisma ORM.
 - **Analytics Overview:** Total prompts, total tokens consumed, average latency, and most used models.
 - **Search & Filter:** Search by keywords, filter by status (*Success/Error*), or paginate through records.
 - **Replay in Playground:** 1-click to re-load past prompts and models into the playground.
@@ -55,21 +55,21 @@ flowchart TD
     subgraph BackendAPI ["Backend Endpoints"]
         ModelsAPI["GET /api/models\n(OpenRouter Catalog + Fallback)"]
         ChatAPI["POST /api/chat\n(SSE Streaming Engine)"]
-        HistoryAPI["GET/DELETE /api/history\n(Prisma SQLite)"]
+        HistoryAPI["GET/DELETE /api/history\n(Prisma PostgreSQL)"]
         StatsAPI["GET /api/stats\n(Usage Aggregations)"]
     end
     
     RouteHandlers --> BackendAPI
     
     ChatAPI -->|"Server-side API Key"| OpenRouterAPI["OpenRouter API\n(OpenAI Compatible LLM Provider)"]
-    ChatAPI -->|"Persist log"| PrismaClient["Prisma ORM (SQLite / dev.db)"]
+    ChatAPI -->|"Persist log"| PrismaClient["Prisma ORM (PostgreSQL / Supabase)"]
     HistoryAPI --> PrismaClient
     StatsAPI --> PrismaClient
 ```
 
 - **Frontend:** Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React, React Markdown, Remark GFM.
 - **Backend:** Next.js Route Handlers (`/api/chat`, `/api/models`, `/api/history`, `/api/stats`).
-- **Database:** Prisma ORM with SQLite (`prisma/dev.db`), easily swappable to PostgreSQL or Supabase.
+- **Database:** Prisma ORM with PostgreSQL, intended for Supabase production databases.
 - **AI Integration:** OpenRouter Unified OpenAI-compatible API (`https://openrouter.ai/api/v1`).
 - **Security:** API keys are handled strictly server-side and never exposed to the client.
 
@@ -95,23 +95,34 @@ npm install
 ### 3. Configure Environment Variables
 Create a `.env` file in the root directory (you can copy `.env.example`):
 ```env
-# Database configuration (SQLite for local file-based persistence)
-DATABASE_URL="file:./dev.db"
+# Database configuration (Supabase PostgreSQL)
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
 
 # OpenRouter AI API Key (Optional default key on server; users can also supply their own key in UI Settings)
 OPENROUTER_API_KEY=""
+
+# At least 32 random characters; signs the browser history ownership cookie.
+SESSION_SECRET=""
 
 # Application URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-> **Note:** If no `OPENROUTER_API_KEY` is provided, the application runs seamlessly in **Interactive Demo Mode**, allowing you to test streaming UI, token counters, latency benchmarks, and SQLite persistence without having to purchase API credits.
+> **Note:** If no `OPENROUTER_API_KEY` is provided, the application runs in **Interactive Demo Mode**. Simulated executions are labeled and excluded from live-inference analytics.
 
 ### 4. Initialize Database
-Create and sync the SQLite database:
+Apply the PostgreSQL schema:
 ```bash
-npx prisma db push
+npx prisma migrate deploy
 ```
+
+The migration adds signed-session ownership and execution metadata without deleting existing rows. Correct the Supabase `DATABASE_URL` before running it. If the database was previously created with `prisma db push` and has no migration history, review the SQL in `prisma/migrations/20261031230000_add_usage_ownership_metadata/migration.sql` and apply it once through the Supabase SQL editor, then use `prisma migrate deploy` for future changes.
+
+### Supabase and session security
+
+Create a Supabase PostgreSQL project, copy its pooled `DATABASE_URL`, and set a random `SESSION_SECRET` of at least 32 characters. The application uses signed, HttpOnly browser session cookies to isolate history and analytics between browser sessions. This is session ownership, not a user account system; add Supabase Auth before requiring cross-device accounts.
+
+Private history and analytics APIs reject requests when `SESSION_SECRET` is missing. Inference is rate-limited per client address, validates payload sizes and model parameters, and records live, simulated, failed, and cancelled executions separately.
 
 ### 5. Start the Development Server
 ```bash

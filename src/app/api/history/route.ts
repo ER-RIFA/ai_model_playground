@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { attachSessionCookie, getSession, SessionConfigurationError } from '@/lib/session';
+import { consumeRateLimit, getClientAddress } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
+    const session = getSession(req);
+    const rateLimit = consumeRateLimit(`history:${getClientAddress(req)}`, 120, 60_000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many history requests. Try again shortly.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search')?.trim() || '';
     const model = searchParams.get('model')?.trim() || '';
@@ -13,7 +24,12 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(50, Math.max(5, parseInt(searchParams.get('limit') || '15', 10)));
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: {
+      ownerId: string;
+      OR?: Array<Record<string, { contains: string }>>;
+      modelId?: string;
+      status?: string;
+    } = { ownerId: session.id };
 
     if (search) {
       where.OR = [
@@ -41,7 +57,7 @@ export async function GET(req: NextRequest) {
       prisma.usageLog.count({ where }),
     ]);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       logs,
       pagination: {
         page,
@@ -50,7 +66,12 @@ export async function GET(req: NextRequest) {
         totalPages: Math.ceil(total / limit) || 1,
       },
     });
+    attachSessionCookie(response, session);
+    return response;
   } catch (error: any) {
+    if (error instanceof SessionConfigurationError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
     console.error('Failed to retrieve history logs:', error);
     return NextResponse.json(
       { error: 'Failed to retrieve usage history logs.' },
@@ -61,23 +82,43 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const session = getSession(req);
+    const rateLimit = consumeRateLimit(`history-delete:${getClientAddress(req)}`, 30, 60_000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many delete requests. Try again shortly.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
     if (id) {
-      await prisma.usageLog.delete({
-        where: { id },
+      const record = await prisma.usageLog.findFirst({
+        where: { id, ownerId: session.id },
+        select: { id: true },
       });
-      return NextResponse.json({ success: true, message: 'Record deleted.' });
+      if (!record) {
+        return NextResponse.json({ error: 'Record not found.' }, { status: 404 });
+      }
+      await prisma.usageLog.delete({ where: { id: record.id } });
+      const response = NextResponse.json({ success: true, message: 'Record deleted.' });
+      attachSessionCookie(response, session);
+      return response;
     }
 
-    // Clear all history
-    const deleteCount = await prisma.usageLog.deleteMany({});
-    return NextResponse.json({
+    const deleteCount = await prisma.usageLog.deleteMany({ where: { ownerId: session.id } });
+    const response = NextResponse.json({
       success: true,
       message: `Cleared ${deleteCount.count} history entries.`,
     });
+    attachSessionCookie(response, session);
+    return response;
   } catch (error: any) {
+    if (error instanceof SessionConfigurationError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
     console.error('Failed to delete history log:', error);
     return NextResponse.json(
       { error: 'Failed to delete record.' },

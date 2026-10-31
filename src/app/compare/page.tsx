@@ -143,18 +143,16 @@ function CompareArenaContent() {
             const dataStr = trimmed.replace(/^data:\s*/, '');
             if (!dataStr) continue;
 
-            try {
-              const data = JSON.parse(dataStr);
-              if (data.type === 'chunk' && data.text) {
-                content += data.text;
-                setResponseA(content);
-              } else if (data.type === 'done') {
-                setLatencyA(data.latencyMs || Date.now() - startTime);
-                setTokensA(data.tokenUsage?.total || estimateTokens(content));
-              } else if (data.type === 'error') {
-                throw new Error(data.message);
-              }
-            } catch {}
+            const data = JSON.parse(dataStr);
+            if (data.type === 'chunk' && data.text) {
+              content += data.text;
+              setResponseA(content);
+            } else if (data.type === 'done') {
+              setLatencyA(data.latencyMs || Date.now() - startTime);
+              setTokensA(data.tokenUsage?.total || estimateTokens(content));
+            } else if (data.type === 'error') {
+              throw new Error(data.message || 'Provider stream failed.');
+            }
           }
         }
       } catch (err: any) {
@@ -206,18 +204,16 @@ function CompareArenaContent() {
             const dataStr = trimmed.replace(/^data:\s*/, '');
             if (!dataStr) continue;
 
-            try {
-              const data = JSON.parse(dataStr);
-              if (data.type === 'chunk' && data.text) {
-                content += data.text;
-                setResponseB(content);
-              } else if (data.type === 'done') {
-                setLatencyB(data.latencyMs || Date.now() - startTime);
-                setTokensB(data.tokenUsage?.total || estimateTokens(content));
-              } else if (data.type === 'error') {
-                throw new Error(data.message);
-              }
-            } catch {}
+            const data = JSON.parse(dataStr);
+            if (data.type === 'chunk' && data.text) {
+              content += data.text;
+              setResponseB(content);
+            } else if (data.type === 'done') {
+              setLatencyB(data.latencyMs || Date.now() - startTime);
+              setTokensB(data.tokenUsage?.total || estimateTokens(content));
+            } else if (data.type === 'error') {
+              throw new Error(data.message || 'Provider stream failed.');
+            }
           }
         }
       } catch (err: any) {

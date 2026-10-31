@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { POPULAR_MODELS } from '@/data/models';
 import { estimateTokens } from '@/lib/utils';
+import { attachSessionCookie, getSession, SessionConfigurationError } from '@/lib/session';
+import { consumeRateLimit, getClientAddress } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +11,20 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
   try {
+    const session = getSession(req);
+    const rateLimit = consumeRateLimit(`chat:${getClientAddress(req)}`, 30, 60_000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Inference rate limit exceeded. Try again shortly.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } }
+      );
+    }
+
+    const contentLength = Number(req.headers.get('content-length') || 0);
+    if (contentLength > 1_000_000) {
+      return NextResponse.json({ error: 'Request payload is too large.' }, { status: 413 });
+    }
+
     const body = await req.json();
     const {
       model = 'deepseek/deepseek-r1:free',
@@ -20,14 +36,37 @@ export async function POST(req: NextRequest) {
       customApiKey = '',
     } = body;
 
-    if (!Array.isArray(messages) || messages.length === 0) {
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 100) {
       return NextResponse.json(
-        { error: 'Invalid request: "messages" array is required and must not be empty.' },
+        { error: 'Invalid request: messages must contain between 1 and 100 items.' },
         { status: 400 }
       );
     }
 
+    const validMessages = messages.every((message: unknown) => {
+      if (!message || typeof message !== 'object') return false;
+      const item = message as { role?: unknown; content?: unknown };
+      return ['user', 'assistant', 'system'].includes(String(item.role))
+        && typeof item.content === 'string'
+        && item.content.length <= 100_000;
+    });
+    if (!validMessages) {
+      return NextResponse.json({ error: 'Each message must have a valid role and content.' }, { status: 400 });
+    }
+
     const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user')?.content || '';
+    if (!lastUserMessage.trim()) {
+      return NextResponse.json({ error: 'A non-empty user message is required.' }, { status: 400 });
+    }
+    if (typeof model !== 'string' || model.length < 1 || model.length > 200) {
+      return NextResponse.json({ error: 'Invalid model identifier.' }, { status: 400 });
+    }
+    if (![temperature, maxTokens, topP].every((value) => typeof value === 'number' && Number.isFinite(value))) {
+      return NextResponse.json({ error: 'Generation parameters must be finite numbers.' }, { status: 400 });
+    }
+    if (typeof customApiKey !== 'string' || (customApiKey && !/^sk-or-v1-[A-Za-z0-9_-]{20,}$/.test(customApiKey.trim()))) {
+      return NextResponse.json({ error: 'Invalid OpenRouter key format.' }, { status: 400 });
+    }
     const activeModel = POPULAR_MODELS.find((m) => m.id === model) || {
       id: model,
       name: model.split('/')[1] || model,
@@ -62,7 +101,9 @@ export async function POST(req: NextRequest) {
             max_tokens: Math.min(Math.max(maxTokens, 16), 8192),
             top_p: Math.min(Math.max(topP, 0), 1),
             stream: true,
+            stream_options: { include_usage: true },
           }),
+          signal: req.signal,
         });
 
         if (!response.ok) {
@@ -85,10 +126,15 @@ export async function POST(req: NextRequest) {
               latencyMs: Date.now() - startTime,
               status: 'error',
               errorMessage: errorMsg,
+              ownerId: session.id,
+              executionMode: 'live',
+              tokenSource: 'estimated',
             },
           }).catch(console.error);
 
-          return NextResponse.json({ error: errorMsg }, { status: response.status });
+          const errorResponse = NextResponse.json({ error: errorMsg }, { status: response.status });
+          attachSessionCookie(errorResponse, session);
+          return errorResponse;
         }
 
         // Setup streaming SSE response
@@ -98,18 +144,25 @@ export async function POST(req: NextRequest) {
         const promptTokens = estimateTokens(
           apiMessages.map((m) => m.content).join(' ')
         );
+        let providerUsage: { prompt: number; completion: number } | null = null;
 
         const stream = new ReadableStream({
           async start(controller) {
+            let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+            let completed = false;
+            const abortReader = () => {
+              reader?.cancel().catch(() => undefined);
+            };
             try {
-              const reader = response.body?.getReader();
+              reader = response.body?.getReader() || null;
               if (!reader) {
                 throw new Error('Unable to read provider response stream.');
               }
+              req.signal.addEventListener('abort', abortReader, { once: true });
 
               let buffer = '';
 
-              while (true) {
+              while (!req.signal.aborted) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
@@ -120,32 +173,54 @@ export async function POST(req: NextRequest) {
                 for (const line of lines) {
                   const trimmed = line.trim();
                   if (!trimmed || !trimmed.startsWith('data:')) continue;
-
                   const dataStr = trimmed.replace(/^data:\s*/, '');
-                  if (dataStr === '[DONE]') {
-                    continue;
+                  if (dataStr === '[DONE]') continue;
+                  const parsed = JSON.parse(dataStr);
+                  if (parsed.error?.message) throw new Error(parsed.error.message);
+                  const deltaContent = parsed.choices?.[0]?.delta?.content || '';
+                  if (parsed.usage?.prompt_tokens || parsed.usage?.completion_tokens) {
+                    providerUsage = {
+                      prompt: Number(parsed.usage.prompt_tokens) || promptTokens,
+                      completion: Number(parsed.usage.completion_tokens) || 0,
+                    };
                   }
-
-                  try {
-                    const parsed = JSON.parse(dataStr);
-                    const deltaContent = parsed.choices?.[0]?.delta?.content || '';
-                    if (deltaContent) {
-                      fullResponse += deltaContent;
-                      controller.enqueue(
-                        encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text: deltaContent })}\n\n`)
-                      );
-                    }
-                  } catch {
-                    // Ignore SSE json chunk parse errors
+                  if (deltaContent) {
+                    fullResponse += deltaContent;
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text: deltaContent })}\n\n`)
+                    );
                   }
                 }
               }
 
-              const latencyMs = Date.now() - startTime;
-              const completionTokens = estimateTokens(fullResponse);
-              const totalTokens = promptTokens + completionTokens;
+              if (req.signal.aborted) {
+                await prisma.usageLog.create({
+                  data: {
+                    ownerId: session.id,
+                    modelId: activeModel.id,
+                    modelName: activeModel.name,
+                    provider: activeModel.provider,
+                    prompt: lastUserMessage,
+                    response: fullResponse,
+                    promptTokens,
+                    completionTokens: estimateTokens(fullResponse),
+                    totalTokens: promptTokens + estimateTokens(fullResponse),
+                    latencyMs: Date.now() - startTime,
+                    status: 'cancelled',
+                    executionMode: 'live',
+                    tokenSource: 'estimated',
+                    errorMessage: 'Generation cancelled by the client.',
+                  },
+                });
+                controller.close();
+                return;
+              }
 
-              // Send completion signal
+              const latencyMs = Date.now() - startTime;
+              const completionTokens = providerUsage?.completion || estimateTokens(fullResponse);
+              const actualPromptTokens = providerUsage?.prompt || promptTokens;
+              const totalTokens = actualPromptTokens + completionTokens;
+
               controller.enqueue(
                 encoder.encode(
                   `data: ${JSON.stringify({
@@ -156,49 +231,98 @@ export async function POST(req: NextRequest) {
                       completion: completionTokens,
                       total: totalTokens,
                     },
+                    executionMode: 'live',
                   })}\n\n`
                 )
               );
               controller.close();
+              completed = true;
 
-              // Save to database
-              prisma.usageLog.create({
+              await prisma.usageLog.create({
                 data: {
+                  ownerId: session.id,
                   modelId: activeModel.id,
                   modelName: activeModel.name,
                   provider: activeModel.provider,
                   prompt: lastUserMessage,
                   response: fullResponse,
-                  promptTokens,
+                  promptTokens: actualPromptTokens,
                   completionTokens,
                   totalTokens,
                   latencyMs,
                   status: 'success',
+                  executionMode: 'live',
+                  tokenSource: providerUsage ? 'provider' : 'estimated',
                 },
-              }).catch((e) => console.error('Prisma log error:', e));
+              });
             } catch (err: any) {
               const errorMsg = err.message || 'Stream processing failed';
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ type: 'error', message: errorMsg })}\n\n`)
-              );
+              if (!completed && !req.signal.aborted) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ type: 'error', message: errorMsg })}\n\n`)
+                );
+                await prisma.usageLog.create({
+                  data: {
+                    ownerId: session.id,
+                    modelId: activeModel.id,
+                    modelName: activeModel.name,
+                    provider: activeModel.provider,
+                    prompt: lastUserMessage,
+                    response: fullResponse,
+                    promptTokens,
+                    completionTokens: estimateTokens(fullResponse),
+                    totalTokens: promptTokens + estimateTokens(fullResponse),
+                    latencyMs: Date.now() - startTime,
+                    status: 'error',
+                    executionMode: 'live',
+                    tokenSource: 'estimated',
+                    errorMessage: errorMsg,
+                  },
+                }).catch((logError) => console.error('Prisma log error:', logError));
+              }
+              await reader?.cancel().catch(() => undefined);
               controller.close();
+            } finally {
+              req.signal.removeEventListener('abort', abortReader);
             }
           },
         });
 
-        return new Response(stream, {
+        const streamResponse = new Response(stream, {
           headers: {
             'Content-Type': 'text/event-stream; charset=utf-8',
             'Cache-Control': 'no-cache, no-transform',
             Connection: 'keep-alive',
           },
         });
+        attachSessionCookie(streamResponse, session);
+        return streamResponse;
       } catch (networkErr: any) {
         console.error('API call exception:', networkErr);
-        return NextResponse.json(
+        await prisma.usageLog.create({
+          data: {
+            ownerId: session.id,
+            modelId: activeModel.id,
+            modelName: activeModel.name,
+            provider: activeModel.provider,
+            prompt: lastUserMessage,
+            response: '',
+            promptTokens: estimateTokens(lastUserMessage),
+            completionTokens: 0,
+            totalTokens: estimateTokens(lastUserMessage),
+            latencyMs: Date.now() - startTime,
+            status: 'error',
+            executionMode: 'live',
+            tokenSource: 'estimated',
+            errorMessage: networkErr?.message || 'Network error reaching AI API.',
+          },
+        }).catch((logError) => console.error('Prisma log error:', logError));
+        const errorResponse = NextResponse.json(
           { error: `Network error reaching AI API: ${networkErr.message}` },
           { status: 502 }
         );
+        attachSessionCookie(errorResponse, session);
+        return errorResponse;
       }
     }
 
@@ -224,6 +348,28 @@ export async function POST(req: NextRequest) {
         // Stream word by word
         const words = simulatedResponse.split(' ');
         for (let i = 0; i < words.length; i++) {
+          if (req.signal.aborted) {
+            await prisma.usageLog.create({
+              data: {
+                ownerId: session.id,
+                modelId: activeModel.id,
+                modelName: activeModel.name,
+                provider: activeModel.provider,
+                prompt: lastUserMessage,
+                response: simulatedResponse.slice(0, i * 5),
+                promptTokens,
+                completionTokens: 0,
+                totalTokens: promptTokens,
+                latencyMs: Date.now() - startTime,
+                status: 'cancelled',
+                executionMode: 'simulation',
+                tokenSource: 'estimated',
+                errorMessage: 'Generation cancelled by the client.',
+              },
+            }).catch((e) => console.error('Prisma log error:', e));
+            controller.close();
+            return;
+          }
           const chunk = (i === 0 ? '' : ' ') + words[i];
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text: chunk })}\n\n`)
@@ -243,6 +389,7 @@ export async function POST(req: NextRequest) {
                 completion: completionTokens,
                 total: promptTokens + completionTokens,
               },
+              executionMode: 'simulation',
             })}\n\n`
           )
         );
@@ -251,6 +398,7 @@ export async function POST(req: NextRequest) {
         // Save demo request to SQLite database for usage tracking
         await prisma.usageLog.create({
           data: {
+            ownerId: session.id,
             modelId: activeModel.id,
             modelName: activeModel.name,
             provider: activeModel.provider,
@@ -261,19 +409,26 @@ export async function POST(req: NextRequest) {
             totalTokens: promptTokens + completionTokens,
             latencyMs,
             status: 'success',
+            executionMode: 'simulation',
+            tokenSource: 'estimated',
           },
         }).catch((e) => console.error('Prisma log error:', e));
       },
     });
 
-    return new Response(stream, {
+    const streamResponse = new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache, no-transform',
         Connection: 'keep-alive',
       },
     });
+    attachSessionCookie(streamResponse, session);
+    return streamResponse;
   } catch (error: any) {
+    if (error instanceof SessionConfigurationError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
     console.error('Chat endpoint error:', error);
     return NextResponse.json(
       { error: error?.message || 'Internal server error processing prompt.' },

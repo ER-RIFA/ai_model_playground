@@ -26,6 +26,7 @@ export default function HistoryPage() {
   const [logs, setLogs] = useState<UsageRecord[]>([]);
   const [stats, setStats] = useState<HistoryStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [page, setPage] = useState(1);
@@ -37,6 +38,7 @@ export default function HistoryPage() {
   const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '15',
@@ -45,14 +47,14 @@ export default function HistoryPage() {
       if (selectedStatus !== 'all') params.append('status', selectedStatus);
 
       const res = await fetch(`/api/history?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setLogs(data.logs || []);
-        setTotalPages(data.pagination?.totalPages || 1);
-        setTotalCount(data.pagination?.total || 0);
-      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `History request failed (${res.status})`);
+      setLogs(data.logs || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalCount(data.pagination?.total || 0);
     } catch (err) {
       console.error('Failed to fetch history logs:', err);
+      setLoadError(err instanceof Error ? err.message : 'Failed to load usage history.');
     } finally {
       setLoading(false);
     }
@@ -98,7 +100,7 @@ export default function HistoryPage() {
   };
 
   const handleClearAll = async () => {
-    if (!confirm('Clear all SQLite usage logs? This action cannot be undone.')) return;
+    if (!confirm('Clear all usage logs for this browser session? This action cannot be undone.')) return;
     try {
       const res = await fetch(`/api/history`, { method: 'DELETE' });
       if (res.ok) {
@@ -131,7 +133,7 @@ export default function HistoryPage() {
               Execution Telemetry & Observability
             </h1>
             <p className="text-xs text-[#9CA3AF] mt-1 max-w-xl">
-              Persistent inference audit trail, latency tracking, and token accounting backed by SQLite.
+              Persistent inference audit trail, latency tracking, and token accounting backed by PostgreSQL.
             </p>
           </div>
 
@@ -228,6 +230,12 @@ export default function HistoryPage() {
             </button>
           </div>
         </div>
+
+        {loadError && (
+          <div className="p-4 rounded-md bg-[#EF4444]/10 border border-[#EF4444]/30 text-xs text-[#EF4444]" role="alert">
+            {loadError}
+          </div>
+        )}
 
         {/* Data Table */}
         {logs.length > 0 ? (

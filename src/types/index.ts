@@ -55,7 +55,9 @@ export interface UsageRecord {
   completionTokens: number;
   totalTokens: number;
   latencyMs: number;
-  status: 'success' | 'error';
+  status: 'success' | 'error' | 'cancelled';
+  executionMode: 'live' | 'simulation' | 'unknown';
+  tokenSource: 'provider' | 'estimated';
   errorMessage?: string | null;
   createdAt: string;
 }
@@ -66,4 +68,9 @@ export interface HistoryStats {
   avgLatencyMs: number;
   successRate: number;
   mostUsedModel: string;
+  successfulRequests: number;
+  failedRequests: number;
+  cancelledRequests: number;
+  liveRequests: number;
+  simulatedRequests: number;
 }

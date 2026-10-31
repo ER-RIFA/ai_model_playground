@@ -9,6 +9,7 @@ generator client {
 
 model UsageLog {
   id               String   @id @default(cuid())
+  ownerId          String   @default("legacy")
   modelId          String
   modelName        String
   provider         String
@@ -19,10 +20,14 @@ model UsageLog {
   totalTokens      Int      @default(0)
   latencyMs        Int      @default(0)
   status           String   @default("success")
+  executionMode    String   @default("unknown")
+  tokenSource      String   @default("estimated")
   errorMessage     String?
   createdAt        DateTime @default(now())
 
   @@index([modelId])
   @@index([createdAt])
   @@index([status])
+  @@index([ownerId, createdAt])
+  @@index([executionMode])
 }
