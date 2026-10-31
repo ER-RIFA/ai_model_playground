@@ -1,51 +1,148 @@
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #191919;
-  --foreground: #F1F0EB;
+  --ink-950: #0c1215;
+  --ink-900: #10191d;
+  --ink-850: #142126;
+  --ink-800: #192a30;
+  --ink-700: #274047;
+  --line: #2b444a;
+  --muted: #91a5a8;
+  --text: #edf4f1;
+  --teal: #58c5b2;
+  --teal-strong: #1d8f81;
+  --amber: #e2a35a;
+  --danger: #e07a78;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ink-950);
+  color-scheme: dark;
 }
 
 body {
-  color: #F1F0EB;
-  background-color: #191919;
+  color: var(--text);
+  background: var(--ink-950);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Restrained, understated scrollbars */
+h1,
+h2,
+h3,
+h4,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+::selection {
+  background: rgba(88, 197, 178, 0.28);
+  color: #fff;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--ink-950);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #383733;
-  border-radius: 2px;
+  background: var(--ink-700);
+  border: 2px solid var(--ink-950);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4A4843;
+  background: #3b5b61;
 }
 
-/* Editorial serif typography utility */
-.font-serif {
-  font-feature-settings: 'kern' 1, 'liga' 1;
-}
-
-/* Utilities */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Preserve the existing Tailwind composition while routing it through the new visual system. */
+[class*="bg-[#0B0C0E]"] { background-color: var(--ink-950) !important; }
+[class*="bg-[#111317]"] { background-color: var(--ink-900) !important; }
+[class*="bg-[#16191F]"] { background-color: var(--ink-850) !important; }
+[class*="bg-[#181B22]"] { background-color: var(--ink-800) !important; }
+[class*="bg-[#21262F]"] { background-color: #20363c !important; }
+[class*="bg-[#1D2129]"] { background-color: #1d3137 !important; }
+[class*="bg-[#0D0E12]"] { background-color: #0a1114 !important; }
+[class*="border-[#222630]"] { border-color: var(--line) !important; }
+[class*="divide-[#222630]"] > :not([hidden]) ~ :not([hidden]) { border-color: var(--line) !important; }
+[class*="text-[#F1F3F5]"] { color: var(--text) !important; }
+[class*="text-[#D1D5DB]"] { color: #d3e0dc !important; }
+[class*="text-[#9CA3AF]"] { color: var(--muted) !important; }
+[class*="text-[#64748B]"] { color: #708a8e !important; }
+[class*="text-[#2563EB]"] { color: var(--teal) !important; }
+[class*="text-[#3B82F6]"] { color: #78d7c6 !important; }
+[class*="text-[#38BDF8]"] { color: var(--amber) !important; }
+[class*="text-[#60A5FA]"] { color: var(--amber) !important; }
+[class*="text-[#10B981]"] { color: var(--teal) !important; }
+[class*="text-[#EF4444]"] { color: var(--danger) !important; }
+[class*="bg-[#2563EB]"] { background-color: var(--teal-strong) !important; }
+[class*="hover\\:bg-[#1D4ED8]"]:hover { background-color: #167468 !important; }
+[class*="hover\\:bg-[#21262F]"]:hover { background-color: #28444b !important; }
+[class*="hover\\:bg-[#16191F]"]:hover { background-color: #20363c !important; }
+[class*="hover\\:text-[#F1F3F5]"]:hover { color: #fff !important; }
+
+.rounded-md {
+  border-radius: 10px;
+}
+
+.rounded {
+  border-radius: 7px;
+}
+
+@media (max-width: 640px) {
+  .max-w-7xl {
+    max-width: 100%;
+  }
 }

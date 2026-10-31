@@ -12,7 +12,9 @@ import {
   Check, 
   ChevronDown,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  Gauge
 } from 'lucide-react';
 import { AIModel } from '@/types';
 import { POPULAR_MODELS } from '@/data/models';
@@ -20,9 +22,9 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { estimateTokens } from '@/lib/utils';
 
 const SUGGESTED_PROMPTS = [
-  'Explain Raft consensus algorithm concisely in 3 bullet points.',
+  'Explain Raft consensus protocol concisely in 3 bullet points.',
   'Write a TypeScript function to debounce an async callback with generics.',
-  'Analyze the trade-offs between REST and GraphQL for developer APIs.',
+  'Analyze the architectural trade-offs between REST and GraphQL.',
   'Solve the 2-Sum problem in Rust with optimal O(n) space and time.'
 ];
 
@@ -252,50 +254,50 @@ function CompareArenaContent() {
     : null;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)] bg-[#191919] text-[#F1F0EB] overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-4.25rem)] bg-[#0B0C0E] text-[#F1F3F5] overflow-hidden">
       {/* Benchmark Control Bar */}
-      <div className="px-4 py-2.5 border-b border-[#383733] bg-[#20201F] shrink-0">
+      <div className="px-4 py-2.5 border-b border-[#222630] bg-[#111317] shrink-0">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-sm bg-[#292927] border border-[#383733] flex items-center justify-center text-[#8CB2D4]">
+            <div className="w-7 h-7 rounded bg-[#16191F] border border-[#222630] flex items-center justify-center text-[#2563EB]">
               <Columns className="w-3.5 h-3.5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-serif text-sm font-normal text-[#F1F0EB]">Arena Comparison</h1>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#A5A39D] px-1.5 py-0.5 rounded-sm bg-[#292927] border border-[#383733]">
+                <h1 className="text-sm font-semibold tracking-tight text-[#F1F3F5]">Arena Benchmark</h1>
+                <span className="text-[10px] font-mono font-medium text-[#9CA3AF] px-1.5 py-0.5 rounded bg-[#16191F] border border-[#222630]">
                   Dual-Stream
                 </span>
               </div>
-              <p className="text-[11px] text-[#A5A39D] hidden sm:block">
-                Execute identical prompts simultaneously across two models to compare latency and output quality.
+              <p className="text-[11px] text-[#64748B] hidden sm:block">
+                Execute identical prompts simultaneously across two models to evaluate latency and response fidelity.
               </p>
             </div>
           </div>
 
-          {/* Benchmark Prompt Input */}
+          {/* Prompt Input & Trigger */}
           <div className="flex items-center gap-2 flex-1 max-w-2xl">
             <input
               type="text"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleRunComparison()}
-              placeholder="Enter prompt to execute against both models concurrently..."
-              className="flex-1 px-3 py-1.5 bg-[#191919] border border-[#383733] rounded-sm text-xs text-[#F1F0EB] placeholder-[#A5A39D]/50 focus:outline-none focus:border-[#2F658E] transition-colors"
+              placeholder="Enter benchmark prompt to execute against both models concurrently..."
+              className="flex-1 px-3 py-1.5 bg-[#0B0C0E] border border-[#222630] rounded text-xs text-[#F1F3F5] placeholder-[#64748B] focus:outline-none focus:border-[#2563EB] transition-colors"
             />
             {isGenerating ? (
               <button
                 onClick={handleStopAll}
-                className="px-3.5 py-1.5 bg-[#852C2C] hover:bg-[#9E3434] text-white text-xs font-medium rounded-sm flex items-center gap-1.5 transition-colors shrink-0"
+                className="px-3.5 py-1.5 bg-[#EF4444] hover:bg-[#DC2626] text-white text-xs font-medium rounded flex items-center gap-1.5 transition-colors shrink-0"
               >
                 <Square className="w-3 h-3 fill-white" />
-                Stop
+                <span>Stop</span>
               </button>
             ) : (
               <button
                 onClick={() => handleRunComparison()}
                 disabled={!prompt.trim()}
-                className="px-4 py-1.5 bg-[#2F658E] hover:bg-[#3B7BA8] text-[#F1F0EB] text-xs font-medium rounded-sm flex items-center gap-1.5 transition-colors disabled:opacity-30 disabled:pointer-events-none shrink-0"
+                className="px-4 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-medium rounded flex items-center gap-1.5 transition-colors disabled:opacity-30 disabled:pointer-events-none shrink-0"
               >
                 <span>Run Arena</span>
                 <ArrowRight className="w-3 h-3" />
@@ -306,56 +308,56 @@ function CompareArenaContent() {
       </div>
 
       {/* Arena Split Panes */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#383733] overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#222630] overflow-hidden">
         {/* Model A Pane */}
-        <div className="flex flex-col h-full overflow-hidden bg-[#191919]">
-          <div className="p-2.5 border-b border-[#383733] flex items-center justify-between bg-[#20201F]">
+        <div className="flex flex-col h-full overflow-hidden bg-[#0B0C0E]">
+          <div className="p-2.5 border-b border-[#222630] flex items-center justify-between bg-[#111317]">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-sm bg-[#292927] text-[#8CB2D4] text-[11px] font-mono font-bold flex items-center justify-center border border-[#383733]">
+              <span className="w-5 h-5 rounded bg-[#16191F] text-[#60A5FA] text-[11px] font-mono font-bold flex items-center justify-center border border-[#222630]">
                 A
               </span>
               <div className="relative">
                 <select
                   value={modelAId}
                   onChange={(e) => setModelAId(e.target.value)}
-                  className="appearance-none bg-[#222220] border border-[#383733] text-xs font-medium text-[#F1F0EB] rounded-sm pl-2.5 pr-6 py-1 focus:outline-none focus:border-[#2F658E] cursor-pointer"
+                  className="appearance-none bg-[#16191F] border border-[#222630] text-xs font-semibold text-[#F1F3F5] rounded pl-2.5 pr-6 py-1 focus:outline-none focus:border-[#2563EB] cursor-pointer"
                 >
                   {models.map((m) => (
-                    <option key={m.id} value={m.id} className="bg-[#222220]">
+                    <option key={m.id} value={m.id} className="bg-[#111317]">
                       {m.name} ({m.provider})
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#A5A39D] absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#64748B] absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             {/* Metrics */}
-            <div className="flex items-center gap-2.5 text-[11px] font-mono text-[#A5A39D]">
+            <div className="flex items-center gap-2.5 text-[11px] font-mono text-[#9CA3AF]">
               {latencyA !== null && (
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-[#8CB2D4]" />
+                  <Clock className="w-3 h-3 text-[#2563EB]" />
                   <span>{latencyA}ms</span>
                   {fasterModel === 'A' && (
-                    <span className="text-[10px] text-[#78A890] font-medium px-1 py-0.5 rounded-sm bg-[#292927] border border-[#383733] ml-0.5">
+                    <span className="text-[10px] text-[#10B981] font-semibold px-1.5 py-0.5 rounded bg-[#10B981]/10 border border-[#10B981]/30 ml-0.5">
                       Faster
                     </span>
                   )}
                 </span>
               )}
               {tokensA !== null && (
-                <span className="flex items-center gap-1 text-[#A5A39D]">
-                  <Hash className="w-3 h-3 text-[#A5A39D]/60" />
+                <span className="flex items-center gap-1 text-[#64748B]">
+                  <Hash className="w-3 h-3 text-[#64748B]" />
                   <span>{tokensA} tok</span>
                 </span>
               )}
               {responseA && (
                 <button
                   onClick={copyResponseA}
-                  className="p-1 hover:text-[#F1F0EB] rounded-sm transition-colors"
+                  className="p-1 hover:text-[#F1F3F5] rounded transition-colors"
                   title="Copy output"
                 >
-                  {copiedA ? <Check className="w-3.5 h-3.5 text-[#78A890]" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedA ? <Check className="w-3.5 h-3.5 text-[#10B981]" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               )}
             </div>
@@ -364,8 +366,8 @@ function CompareArenaContent() {
           {/* Model A Output Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {errorA ? (
-              <div className="p-3.5 rounded-sm bg-[#222220] border border-[#852C2C]/50 text-xs text-[#E58B8B]">
-                <div className="flex items-center gap-1.5 mb-1 font-mono uppercase text-[10px] font-bold text-[#E58B8B]">
+              <div className="p-3.5 rounded bg-[#EF4444]/10 border border-[#EF4444]/30 text-xs text-[#EF4444]">
+                <div className="flex items-center gap-1.5 mb-1 font-mono uppercase text-[10px] font-bold">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>Execution Failure</span>
                 </div>
@@ -374,17 +376,17 @@ function CompareArenaContent() {
             ) : responseA ? (
               <MarkdownRenderer content={responseA} />
             ) : isGenerating ? (
-              <div className="flex items-center gap-2 text-xs text-[#A5A39D] py-4">
-                <span className="w-1.5 h-1.5 rounded-sm bg-[#8CB2D4] animate-pulse" />
+              <div className="flex items-center gap-2 text-xs text-[#9CA3AF] py-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse" />
                 <span className="font-mono">Streaming response from {modelA.name}...</span>
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#A5A39D]">
-                <div className="w-8 h-8 rounded-sm bg-[#222220] border border-[#383733] flex items-center justify-center text-[#A5A39D] mb-2 font-mono text-xs">
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#9CA3AF]">
+                <div className="w-8 h-8 rounded bg-[#111317] border border-[#222630] flex items-center justify-center text-[#64748B] mb-2 font-mono text-xs">
                   A
                 </div>
-                <p className="font-serif text-sm text-[#F1F0EB] mb-1">Model A Ready</p>
-                <p className="text-xs text-[#A5A39D] max-w-xs font-sans">
+                <p className="text-sm font-semibold text-[#F1F3F5] mb-1">Model A Ready</p>
+                <p className="text-xs text-[#64748B] max-w-xs font-sans">
                   Select a model above and enter a prompt in the top control bar to stream output.
                 </p>
               </div>
@@ -393,54 +395,54 @@ function CompareArenaContent() {
         </div>
 
         {/* Model B Pane */}
-        <div className="flex flex-col h-full overflow-hidden bg-[#191919]">
-          <div className="p-2.5 border-b border-[#383733] flex items-center justify-between bg-[#20201F]">
+        <div className="flex flex-col h-full overflow-hidden bg-[#0B0C0E]">
+          <div className="p-2.5 border-b border-[#222630] flex items-center justify-between bg-[#111317]">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-sm bg-[#292927] text-[#78A890] text-[11px] font-mono font-bold flex items-center justify-center border border-[#383733]">
+              <span className="w-5 h-5 rounded bg-[#16191F] text-[#34D399] text-[11px] font-mono font-bold flex items-center justify-center border border-[#222630]">
                 B
               </span>
               <div className="relative">
                 <select
                   value={modelBId}
                   onChange={(e) => setModelBId(e.target.value)}
-                  className="appearance-none bg-[#222220] border border-[#383733] text-xs font-medium text-[#F1F0EB] rounded-sm pl-2.5 pr-6 py-1 focus:outline-none focus:border-[#2F658E] cursor-pointer"
+                  className="appearance-none bg-[#16191F] border border-[#222630] text-xs font-semibold text-[#F1F3F5] rounded pl-2.5 pr-6 py-1 focus:outline-none focus:border-[#2563EB] cursor-pointer"
                 >
                   {models.map((m) => (
-                    <option key={m.id} value={m.id} className="bg-[#222220]">
+                    <option key={m.id} value={m.id} className="bg-[#111317]">
                       {m.name} ({m.provider})
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#A5A39D] absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#64748B] absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             {/* Metrics */}
-            <div className="flex items-center gap-2.5 text-[11px] font-mono text-[#A5A39D]">
+            <div className="flex items-center gap-2.5 text-[11px] font-mono text-[#9CA3AF]">
               {latencyB !== null && (
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-[#78A890]" />
+                  <Clock className="w-3 h-3 text-[#10B981]" />
                   <span>{latencyB}ms</span>
                   {fasterModel === 'B' && (
-                    <span className="text-[10px] text-[#78A890] font-medium px-1 py-0.5 rounded-sm bg-[#292927] border border-[#383733] ml-0.5">
+                    <span className="text-[10px] text-[#10B981] font-semibold px-1.5 py-0.5 rounded bg-[#10B981]/10 border border-[#10B981]/30 ml-0.5">
                       Faster
                     </span>
                   )}
                 </span>
               )}
               {tokensB !== null && (
-                <span className="flex items-center gap-1 text-[#A5A39D]">
-                  <Hash className="w-3 h-3 text-[#A5A39D]/60" />
+                <span className="flex items-center gap-1 text-[#64748B]">
+                  <Hash className="w-3 h-3 text-[#64748B]" />
                   <span>{tokensB} tok</span>
                 </span>
               )}
               {responseB && (
                 <button
                   onClick={copyResponseB}
-                  className="p-1 hover:text-[#F1F0EB] rounded-sm transition-colors"
+                  className="p-1 hover:text-[#F1F3F5] rounded transition-colors"
                   title="Copy output"
                 >
-                  {copiedB ? <Check className="w-3.5 h-3.5 text-[#78A890]" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedB ? <Check className="w-3.5 h-3.5 text-[#10B981]" /> : <Copy className="w-3.5 h-3.5" />}
                 </button>
               )}
             </div>
@@ -449,8 +451,8 @@ function CompareArenaContent() {
           {/* Model B Output Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {errorB ? (
-              <div className="p-3.5 rounded-sm bg-[#222220] border border-[#852C2C]/50 text-xs text-[#E58B8B]">
-                <div className="flex items-center gap-1.5 mb-1 font-mono uppercase text-[10px] font-bold text-[#E58B8B]">
+              <div className="p-3.5 rounded bg-[#EF4444]/10 border border-[#EF4444]/30 text-xs text-[#EF4444]">
+                <div className="flex items-center gap-1.5 mb-1 font-mono uppercase text-[10px] font-bold">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>Execution Failure</span>
                 </div>
@@ -459,18 +461,18 @@ function CompareArenaContent() {
             ) : responseB ? (
               <MarkdownRenderer content={responseB} />
             ) : isGenerating ? (
-              <div className="flex items-center gap-2 text-xs text-[#A5A39D] py-4">
-                <span className="w-1.5 h-1.5 rounded-sm bg-[#78A890] animate-pulse" />
+              <div className="flex items-center gap-2 text-xs text-[#9CA3AF] py-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
                 <span className="font-mono">Streaming response from {modelB.name}...</span>
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#A5A39D]">
-                <div className="w-8 h-8 rounded-sm bg-[#222220] border border-[#383733] flex items-center justify-center text-[#A5A39D] mb-2 font-mono text-xs">
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#9CA3AF]">
+                <div className="w-8 h-8 rounded bg-[#111317] border border-[#222630] flex items-center justify-center text-[#64748B] mb-2 font-mono text-xs">
                   B
                 </div>
-                <p className="font-serif text-sm text-[#F1F0EB] mb-1">Model B Ready</p>
-                <p className="text-xs text-[#A5A39D] max-w-xs font-sans">
-                  Select a second model above to compare generation characteristics side-by-side.
+                <p className="text-sm font-semibold text-[#F1F3F5] mb-1">Model B Ready</p>
+                <p className="text-xs text-[#64748B] max-w-xs font-sans">
+                  Select a second model above to compare output quality side-by-side.
                 </p>
               </div>
             )}
@@ -480,17 +482,17 @@ function CompareArenaContent() {
 
       {/* Suggested prompts strip when empty */}
       {!responseA && !responseB && !isGenerating && (
-        <div className="px-4 py-2 border-t border-[#383733] bg-[#20201F] shrink-0">
+        <div className="px-4 py-2 border-t border-[#222630] bg-[#111317] shrink-0">
           <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto text-xs py-0.5">
-            <span className="flex items-center gap-1 text-[11px] font-mono text-[#A5A39D] shrink-0 mr-1">
-              <Sparkles className="w-3 h-3 text-[#8CB2D4]" />
+            <span className="flex items-center gap-1 text-[11px] font-mono text-[#64748B] shrink-0 mr-1">
+              <Sparkles className="w-3 h-3 text-[#2563EB]" />
               Quick prompts:
             </span>
             {SUGGESTED_PROMPTS.map((suggestion, idx) => (
               <button
                 key={idx}
                 onClick={() => handleRunComparison(suggestion)}
-                className="px-2.5 py-1 rounded-sm bg-[#222220] hover:bg-[#292927] border border-[#383733] text-[11px] text-[#A5A39D] hover:text-[#F1F0EB] shrink-0 transition-colors truncate max-w-xs text-left"
+                className="px-2.5 py-1 rounded bg-[#16191F] hover:bg-[#21262F] border border-[#222630] text-[11px] text-[#9CA3AF] hover:text-[#F1F3F5] shrink-0 transition-colors truncate max-w-xs text-left"
               >
                 {suggestion}
               </button>
@@ -506,7 +508,7 @@ export default function CompareArenaPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="flex items-center justify-center h-[calc(100vh-3.5rem)] bg-[#191919] text-[#A5A39D] text-xs font-mono">
+        <div className="flex items-center justify-center h-[calc(100vh-3.25rem)] bg-[#0B0C0E] text-[#64748B] text-xs font-mono">
           Loading Arena...
         </div>
       }

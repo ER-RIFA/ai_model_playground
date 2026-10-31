@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Info } from 'lucide-react';
+import { ArrowRight, Info, Zap } from 'lucide-react';
 import { AIModel } from '@/types';
 import { formatNumber, formatPrice } from '@/lib/utils';
 
@@ -13,100 +13,101 @@ interface ModelCardProps {
 
 export function ModelCard({ model, onOpenDetails }: ModelCardProps) {
   return (
-    <div className="flex flex-col justify-between p-4 rounded-sm bg-[#222220] border border-[#383733] hover:border-[#4A4843] transition-colors duration-150">
+    <div className="group flex flex-col justify-between p-5 rounded-md bg-[#16191F] border border-[#222630] hover:border-[#58C5B2]/50 hover:bg-[#181B22] transition-all duration-200">
       {/* Header Info */}
       <div>
-        <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center justify-between gap-2 mb-2.5">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono uppercase tracking-wider bg-[#20201F] text-[#A5A39D] border border-[#383733]">
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono text-[#9CA3AF] bg-[#111317] border border-[#222630]">
               {model.provider}
             </span>
             {model.isFree && (
-              <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-mono text-[#48A977] bg-[#48A977]/10 border border-[#48A977]/30">
+              <span className="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/30">
                 Free Tier
               </span>
             )}
             {model.featured && (
-              <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-mono text-[#8CB2D4] bg-[#2F658E]/20 border border-[#2F658E]/40">
-                Benchmark
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono font-medium text-[#38BDF8] bg-[#38BDF8]/10 border border-[#38BDF8]/30">
+                <Zap className="w-2.5 h-2.5 fill-current" />
+                Featured
               </span>
             )}
           </div>
 
           <button
             onClick={() => onOpenDetails(model)}
-            className="text-[#76746E] hover:text-[#F1F0EB] p-1 rounded-sm hover:bg-[#292927] transition-colors"
-            title="Inspect Model Architecture"
+            className="text-[#64748B] hover:text-[#F1F3F5] p-1 rounded hover:bg-[#21262F] transition-colors"
+            title="Inspect Model Architecture & Specs"
           >
-            <Info className="w-3.5 h-3.5" />
+            <Info className="w-4 h-4" />
           </button>
         </div>
 
-        <h3 className="font-serif text-base font-normal tracking-wide text-[#F1F0EB]">
+        <h3 className="text-base font-semibold text-[#F1F3F5] tracking-tight mb-1">
           {model.name}
         </h3>
-        <p className="text-[11px] font-mono text-[#76746E] mt-0.5 mb-2 truncate" title={model.id}>
+        <p className="text-[11px] font-mono text-[#64748B] mb-2.5 truncate" title={model.id}>
           {model.id}
         </p>
 
-        <p className="text-xs text-[#A5A39D] line-clamp-2 leading-relaxed mb-3">
+        <p className="text-xs text-[#9CA3AF] line-clamp-3 leading-relaxed mb-4">
           {model.description}
         </p>
       </div>
 
       {/* Metrics & Capabilities */}
       <div>
-        <div className="grid grid-cols-2 gap-2 py-2 px-2.5 rounded-sm bg-[#191919] border border-[#383733] mb-3 text-xs font-mono">
+        <div className="grid grid-cols-2 gap-2 py-3 px-3 rounded bg-[#111317] border border-[#222630] mb-4 text-xs font-mono">
           <div>
-            <span className="text-[10px] text-[#76746E] block uppercase tracking-wider">
+            <span className="text-[10px] text-[#64748B] block uppercase tracking-wider">
               Context
             </span>
-            <span className="font-medium text-[#F1F0EB] text-[11px]">
+            <span className="font-semibold text-[#F1F3F5] text-[11px]">
               {formatNumber(model.contextLength)} tok
             </span>
           </div>
           <div>
-            <span className="text-[10px] text-[#76746E] block uppercase tracking-wider">
+            <span className="text-[10px] text-[#64748B] block uppercase tracking-wider">
               Prompt Cost
             </span>
-            <span className={`font-medium text-[11px] ${model.isFree ? 'text-[#48A977]' : 'text-[#F1F0EB]'}`}>
+            <span className={`font-semibold text-[11px] ${model.isFree ? 'text-[#10B981]' : 'text-[#F1F3F5]'}`}>
               {model.isFree ? 'Free' : formatPrice(model.pricing.prompt)}
             </span>
           </div>
         </div>
 
         {/* Capability Tags */}
-        <div className="flex items-center gap-1 flex-wrap mb-3">
+        <div className="flex items-center gap-1 flex-wrap mb-4">
           {model.capabilities.map((cap) => (
             <span
               key={cap}
-              className="px-1.5 py-0.5 rounded-sm text-[10px] font-sans bg-[#20201F] text-[#A5A39D] border border-[#383733]"
+              className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#111317] text-[#9CA3AF] border border-[#222630]"
             >
               {cap}
             </span>
           ))}
           {model.architecture && (
-            <span className="px-1.5 py-0.5 rounded-sm text-[10px] font-mono text-[#76746E] bg-[#191919] border border-[#383733] truncate max-w-[110px]">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono text-[#64748B] bg-[#111317] border border-[#222630] truncate max-w-[120px]">
               {model.architecture}
             </span>
           )}
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-1.5 pt-2 border-t border-[#383733]">
+        <div className="flex items-center gap-2 pt-2.5 border-t border-[#222630]">
           <Link
             href={`/playground?model=${encodeURIComponent(model.id)}`}
-            className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-sm text-xs font-medium bg-[#2F658E] hover:bg-[#255273] text-[#F1F0EB] transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-[#2563EB] hover:bg-[#1D4ED8] text-white transition-colors"
           >
             <span>Launch Studio</span>
-            <ArrowRight className="w-3 h-3" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
 
           <Link
             href={`/compare?modelA=${encodeURIComponent(model.id)}`}
-            className="px-2.5 py-1.5 rounded-sm text-xs font-medium text-[#A5A39D] hover:text-[#F1F0EB] bg-[#20201F] hover:bg-[#292927] border border-[#383733] transition-colors"
+            className="px-3 py-1.5 rounded text-xs font-medium text-[#9CA3AF] hover:text-[#F1F3F5] bg-[#111317] hover:bg-[#21262F] border border-[#222630] transition-colors"
           >
-            Compare
+            Arena
           </Link>
         </div>
       </div>

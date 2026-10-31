@@ -48,28 +48,28 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-none">
-      <div className="bg-[#20201F] border border-[#383733] rounded-sm w-full max-w-md overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-none">
+      <div className="bg-[#111317] border border-[#222630] rounded-md w-full max-w-md overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#383733] bg-[#1C1C1B]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#222630] bg-[#0B0C0E]">
           <div className="flex items-center gap-2">
-            <Key className="w-3.5 h-3.5 text-[#8CB2D4]" />
-            <h2 className="font-serif text-sm font-normal tracking-wide text-[#F1F0EB]">
+            <Key className="w-4 h-4 text-[#2563EB]" />
+            <h2 className="text-sm font-semibold tracking-tight text-[#F1F3F5]">
               Inference Credentials
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-sm text-[#A5A39D] hover:text-[#F1F0EB] hover:bg-[#292927] transition-colors"
+            className="p-1 rounded text-[#9CA3AF] hover:text-[#F1F3F5] hover:bg-[#16191F] transition-colors"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
         <div className="p-5 space-y-4 text-xs">
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#A5A39D]">
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[#9CA3AF]">
               OpenRouter API Key (BYOK)
             </label>
             <input
@@ -77,18 +77,18 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
               placeholder="sk-or-v1-..."
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="w-full px-3 py-2 bg-[#191919] border border-[#383733] rounded-sm text-xs text-[#F1F0EB] placeholder-[#76746E] focus:outline-none focus:border-[#8CB2D4] font-mono transition-colors"
+              className="w-full px-3 py-2 bg-[#0B0C0E] border border-[#222630] rounded text-xs text-[#F1F3F5] placeholder-[#64748B] focus:outline-none focus:border-[#2563EB] font-mono transition-colors"
             />
-            <p className="text-[11px] text-[#A5A39D] leading-relaxed">
-              Optional. If not provided, the workbench operates via server configuration or offline simulated benchmarking.
+            <p className="text-[11px] text-[#64748B] leading-relaxed">
+              Bring Your Own Key. If omitted, the workbench operates via server environment keys or intelligent simulated benchmarking.
             </p>
           </div>
 
           {/* Privacy Note */}
-          <div className="flex items-start gap-2.5 p-3 rounded-sm bg-[#191919] border border-[#383733] text-[11px] text-[#A5A39D] leading-relaxed">
-            <ShieldCheck className="w-4 h-4 text-[#48A977] shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 p-3 rounded bg-[#0B0C0E] border border-[#222630] text-[11px] text-[#9CA3AF] leading-relaxed">
+            <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
             <span>
-              Keys are strictly persisted to client <code className="text-[#F1F0EB] font-mono">localStorage</code> and forwarded through encrypted request headers. No credentials are saved in SQLite or persistent logs.
+              Credentials are saved strictly in your client <code className="text-[#F1F3F5] font-mono">localStorage</code> and forwarded as an auth header. Never stored on disk or server databases.
             </span>
           </div>
 
@@ -96,38 +96,39 @@ export function SettingsModal({ isOpen, onClose, onKeySaved }: SettingsModalProp
             href="https://openrouter.ai/keys"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-[#8CB2D4] hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs text-[#2563EB] hover:text-[#3B82F6] hover:underline"
           >
-            Retrieve OpenRouter API key <ExternalLink className="w-3 h-3" />
+            <span>Generate an OpenRouter API key</span>
+            <ExternalLink className="w-3 h-3" />
           </a>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between px-5 py-3 bg-[#1C1C1B] border-t border-[#383733]">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-[#0B0C0E] border-t border-[#222630]">
           <button
             onClick={handleClear}
             disabled={!apiKey}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs text-[#E06D67] hover:bg-[#E06D67]/10 rounded-sm transition-colors disabled:opacity-30 disabled:pointer-events-none"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-[#EF4444] hover:bg-[#EF4444]/10 rounded transition-colors disabled:opacity-30 disabled:pointer-events-none"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            Clear
+            <span>Clear</span>
           </button>
 
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 text-xs text-[#A5A39D] hover:text-[#F1F0EB] hover:bg-[#292927] rounded-sm transition-colors"
+              className="px-3 py-1.5 text-xs text-[#9CA3AF] hover:text-[#F1F3F5] rounded transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2F658E] hover:bg-[#255273] text-[#F1F0EB] text-xs font-medium rounded-sm transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-medium rounded transition-colors"
             >
               {saved ? (
                 <>
-                  <Check className="w-3 h-3 text-[#F1F0EB]" />
-                  Saved
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Saved</span>
                 </>
               ) : (
                 'Save Key'

@@ -27,7 +27,8 @@ yarn-error.log*
 
 # local env files
 .env
-.env*.local
+.env.*
+!.env.example
 
 # sqlite databases
 *.db
@@ -37,6 +38,15 @@ prisma/*.db-journal
 
 # vercel
 .vercel
+
+# local AI/editor tooling
+/.agent/
+/.agents/
+/.claude/
+/.codex/
+/.cursor/
+/.gemini/
+/.opencode/
 
 # typescript
 *.tsbuildinfo
